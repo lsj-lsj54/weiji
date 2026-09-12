@@ -33,7 +33,7 @@
 | POST | `/api/task/{id}/skip` | 消耗 SKIP_CARD |
 | GET | `/api/task/delay-curve` | 拖延改善曲线 |
 
-每日 00:10 未完成待办自动 `deferred_to=今天`。休息日或免打扰匹配返回业务码 `3004`/`3005`。
+每日 00:10 未完成待办自动 `deferred_to=今天`。休息日匹配返回 `3004`。免打扰只作用于 `preload`（空列表），用户主动 `match` 仍会出结果。
 
 ## 专注计时
 

@@ -182,9 +182,6 @@ public class TaskServiceImpl implements TaskService {
         if (matcher.isRestDay(pref, today)) {
             throw new BizException(ErrorCode.REST_DAY);
         }
-        if (matcher.inDnd(pref, LocalTime.now())) {
-            throw new BizException(ErrorCode.DND_PERIOD);
-        }
         int idle = idleMinutes == null || idleMinutes < 1 ? 15 : idleMinutes;
         String energy = StringUtils.defaultIfBlank(energyStatus, pref == null ? "ENERGETIC" : pref.getEnergyStatus());
         List<Task> pool = matchable(userId, today);
@@ -203,6 +200,10 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> preload(Long userId, Integer idleMinutes, String sceneCode) {
+        UserPreference pref = preference(userId);
+        if (matcher.inDnd(pref, LocalTime.now()) || matcher.isRestDay(pref, LocalDate.now())) {
+            return List.of();
+        }
         try {
             return match(userId, idleMinutes == null ? 30 : idleMinutes, sceneCode, null, null);
         } catch (BizException ex) {
