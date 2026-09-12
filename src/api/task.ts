@@ -9,6 +9,18 @@ export function createTask(payload: Partial<TaskItem>) {
   return request<TaskItem>({ method: 'POST', url: '/api/task', data: payload })
 }
 
+export function updateTask(payload: Partial<TaskItem>) {
+  return request<TaskItem>({ method: 'PUT', url: '/api/task', data: payload })
+}
+
+export function importTasks(tasks: Partial<TaskItem>[]) {
+  return request<TaskItem[]>({ method: 'POST', url: '/api/task/import', data: tasks })
+}
+
+export function preloadTasks(payload: { idleMinutes: number; sceneCode?: string }) {
+  return request<TaskItem[]>({ method: 'POST', url: '/api/task/preload', data: payload })
+}
+
 export function matchTasks(payload: {
   idleMinutes: number
   sceneCode?: string

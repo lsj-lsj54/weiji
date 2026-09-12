@@ -1,8 +1,12 @@
 import { request } from './http'
 import type { KnowledgeNote, KnowledgeReview } from './types'
 
-export function listNotes() {
-  return request<KnowledgeNote[]>({ url: '/api/knowledge' })
+export function listNotes(params?: { tag?: string; mastery?: string; starred?: boolean }) {
+  return request<KnowledgeNote[]>({ url: '/api/knowledge', params })
+}
+
+export function getNote(id: number) {
+  return request<KnowledgeNote>({ url: `/api/knowledge/${id}` })
 }
 
 export function createNote(title: string, content: string, tags: string[]) {
@@ -14,6 +18,14 @@ export function createNote(title: string, content: string, tags: string[]) {
       tags,
     },
   })
+}
+
+export function updateNote(note: KnowledgeNote, tags?: string[]) {
+  return request<KnowledgeNote>({ method: 'PUT', url: '/api/knowledge', data: { note, tags } })
+}
+
+export function mergeNotes(fromId: number, toId: number) {
+  return request<KnowledgeNote>({ method: 'POST', url: '/api/knowledge/merge', data: { fromId, toId } })
 }
 
 export function deleteNote(id: number) {

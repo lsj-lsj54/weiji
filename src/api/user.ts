@@ -5,6 +5,10 @@ export function fetchMe() {
   return request<UserProfile>({ url: '/api/user/me' })
 }
 
+export function searchUser(phone: string) {
+  return request<UserProfile>({ url: '/api/user/search', params: { phone } })
+}
+
 export function updateProfile(payload: { nickname?: string; avatar?: string }) {
   return request<UserProfile>({ method: 'PUT', url: '/api/user/profile', data: payload })
 }

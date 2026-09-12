@@ -11,7 +11,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const nickname = ref('')
 const energy = ref('ENERGETIC')
-const restSet = ref<number[]>([0])
+const restSet = ref<number[]>([])
 const dnd = ref('22:00-07:00')
 const daily = ref(30)
 const weekly = ref(180)
@@ -19,27 +19,22 @@ const error = ref('')
 const saved = ref('')
 
 const restLabel = computed(() =>
-  restSet.value.length ? restSet.value.map((v) => WEEKDAYS.find((d) => d.v === v)?.l).join('、') : '无',
+  restSet.value.length ? restSet.value.map((v) => WEEKDAYS.find((d) => d.v === v)?.l).join('') : '无',
 )
 
 function parseRest(raw?: string) {
-  if (!raw) return [0]
+  if (!raw) return []
   try {
     const arr = JSON.parse(raw) as unknown
     if (Array.isArray(arr)) return arr.map(Number).filter((n) => n >= 0 && n <= 6)
   } catch {
-    const nums = raw.match(/\d/g)
-    if (nums) return nums.map(Number)
+    return []
   }
-  return [0]
+  return []
 }
 
 function toggleDay(v: number) {
-  if (restSet.value.includes(v)) {
-    restSet.value = restSet.value.filter((x) => x !== v)
-  } else {
-    restSet.value = [...restSet.value, v].sort()
-  }
+  restSet.value = restSet.value.includes(v) ? restSet.value.filter((x) => x !== v) : [...restSet.value, v].sort()
 }
 
 onMounted(async () => {
@@ -87,13 +82,16 @@ async function out() {
 <template>
   <AppShell>
     <main class="screen">
-      <p class="kicker">我</p>
       <h2 class="task-title" style="font-size: 22px">{{ auth.user?.nickname || '未命名' }}</h2>
-      <p class="muted">{{ auth.user?.phone }} · 编号 {{ auth.user?.id }}</p>
+      <p class="muted">{{ auth.user?.phone }}</p>
 
-      <form class="stack" style="margin-top: 24px" @submit.prevent="save">
+      <div class="stack" style="margin: 20px 0">
+        <router-link class="panel" to="/knowledge">知识点</router-link>
+        <router-link class="panel" to="/social">一块过</router-link>
+      </div>
+
+      <form class="stack" @submit.prevent="save">
         <input v-model="nickname" class="field" placeholder="昵称" />
-        <p class="kicker">默认精力</p>
         <div class="chips">
           <button
             v-for="e in ENERGIES"
@@ -106,7 +104,7 @@ async function out() {
             {{ e.label }}
           </button>
         </div>
-        <p class="kicker">休息日（当天不匹配任务）</p>
+        <p class="kicker">休息日 · 周{{ restLabel }}</p>
         <div class="chips">
           <button
             v-for="d in WEEKDAYS"
@@ -119,24 +117,14 @@ async function out() {
             {{ d.l }}
           </button>
         </div>
-        <p class="hint">已选：周{{ restLabel }}</p>
-        <label class="hint">免打扰，例如 22:00-07:00</label>
-        <input v-model="dnd" class="field" />
-        <label class="hint">每日专注目标（分钟）</label>
-        <input v-model.number="daily" class="field" type="number" min="0" />
-        <label class="hint">每周专注目标（分钟）</label>
-        <input v-model.number="weekly" class="field" type="number" min="0" />
-        <button class="btn btn--primary" type="submit">保存偏好</button>
+        <input v-model="dnd" class="field" placeholder="免打扰 22:00-07:00" />
+        <input v-model.number="daily" class="field" type="number" min="0" placeholder="每日分钟" />
+        <input v-model.number="weekly" class="field" type="number" min="0" placeholder="每周分钟" />
+        <button class="btn btn--primary" type="submit">保存</button>
       </form>
       <p v-if="saved" class="banner" style="margin-top: 12px">{{ saved }}</p>
       <p v-if="error" class="toast">{{ error }}</p>
-
-      <div class="stack" style="margin-top: 28px">
-        <router-link class="panel" to="/tasks">任务池、模板、大目标</router-link>
-        <router-link class="panel" to="/knowledge">知识点与复习</router-link>
-        <router-link class="panel" to="/social">好友、广场、组队、同桌</router-link>
-        <button class="btn" type="button" @click="out">退出</button>
-      </div>
+      <button class="btn" style="margin-top: 24px; width: 100%" type="button" @click="out">退出</button>
     </main>
   </AppShell>
 </template>

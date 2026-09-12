@@ -85,9 +85,9 @@ export const useFocusStore = defineStore('focus', () => {
     session.value = await resumeFocus(session.value.id)
   }
 
-  async function finish() {
+  async function finish(remark?: string) {
     if (!session.value) return
-    const done = await finishFocus(session.value.id, Date.now())
+    const done = await finishFocus(session.value.id, Date.now(), remark)
     stopClock()
     session.value = null
     return done

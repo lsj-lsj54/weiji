@@ -152,6 +152,9 @@ export interface UserItem {
 export interface UserBadge {
   id: number
   badgeId: number
+  code?: string
+  name?: string
+  description?: string
 }
 
 export interface RankRow {
@@ -201,6 +204,17 @@ export interface FriendRequest {
   fromUserId: number
   toUserId: number
   status: string
+  nickname?: string
+  phone?: string
+}
+
+export interface TeamCard {
+  id: number
+  name: string
+  goalDesc?: string
+  ownerId?: number
+  finishedCount?: number
+  members?: TeamMember[]
 }
 
 export const WEEKDAYS = [

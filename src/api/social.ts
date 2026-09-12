@@ -5,6 +5,7 @@ import type {
   FriendRow,
   PlazaPost,
   RankRow,
+  TeamCard,
   TeamMember,
   TeamRow,
 } from './types'
@@ -15,6 +16,10 @@ export function weekRank() {
 
 export function listFriends() {
   return request<FriendRow[]>({ url: '/api/social/friends' })
+}
+
+export function pendingFriendRequests() {
+  return request<FriendRequest[]>({ url: '/api/social/friends/requests' })
 }
 
 export function sendFriendRequest(userId: number) {
@@ -51,6 +56,10 @@ export function createTeam(name: string, goalDesc: string, memberId?: number) {
     url: '/api/social/teams',
     data: { name, goalDesc, memberId },
   })
+}
+
+export function myTeams() {
+  return request<TeamCard[]>({ url: '/api/social/teams' })
 }
 
 export function teamCheckin(id: number) {

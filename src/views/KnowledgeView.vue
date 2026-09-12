@@ -2,7 +2,18 @@
 import { onMounted, ref } from 'vue'
 import AppShell from '@/components/AppShell.vue'
 import { ApiError } from '@/api/http'
-import { createNote, deleteNote, dueReview, exportNotes, listNotes, markReview, weeklySummary } from '@/api/knowledge'
+import {
+  createNote,
+  deleteNote,
+  dueReview,
+  exportNotes,
+  getNote,
+  listNotes,
+  markReview,
+  mergeNotes,
+  updateNote,
+  weeklySummary,
+} from '@/api/knowledge'
 import type { KnowledgeNote, KnowledgeReview } from '@/api/types'
 
 const notes = ref<KnowledgeNote[]>([])
@@ -11,9 +22,16 @@ const dueNote = ref<KnowledgeNote | null>(null)
 const week = ref<{ count: number; byTag: Record<string, string[]> } | null>(null)
 const error = ref('')
 const notice = ref('')
+const addOpen = ref(false)
 const title = ref('')
 const content = ref('')
-const tags = ref('英语')
+const tags = ref('')
+const tagFilter = ref('')
+const starredOnly = ref(false)
+const mergeFrom = ref<number | null>(null)
+const editing = ref<number | null>(null)
+const editTitle = ref('')
+const editContent = ref('')
 
 function msg(e: unknown, fallback: string) {
   return e instanceof ApiError ? e.message : fallback
@@ -22,12 +40,18 @@ function msg(e: unknown, fallback: string) {
 async function load() {
   error.value = ''
   try {
-    notes.value = await listNotes()
+    notes.value = await listNotes({
+      tag: tagFilter.value || undefined,
+      starred: starredOnly.value || undefined,
+    })
     due.value = await dueReview()
     week.value = await weeklySummary()
-    dueNote.value = due.value ? notes.value.find((n) => n.id === due.value?.noteId) || null : null
+    dueNote.value = null
+    if (due.value?.noteId) {
+      dueNote.value = notes.value.find((n) => n.id === due.value?.noteId) || (await getNote(due.value.noteId))
+    }
   } catch (e) {
-    error.value = msg(e, '知识点加载失败')
+    error.value = msg(e, '加载失败')
   }
 }
 
@@ -35,16 +59,13 @@ onMounted(load)
 
 async function add() {
   if (!title.value.trim()) return
-  error.value = ''
+  const tagList = tags.value.split(/[,，\s]+/).map((s) => s.trim()).filter(Boolean)
   try {
-    const tagList = tags.value
-      .split(/[,，\s]+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
     await createNote(title.value.trim(), content.value.trim(), tagList)
     title.value = ''
     content.value = ''
-    notice.value = '已记下，并会生成一条复习任务'
+    addOpen.value = false
+    notice.value = '已记下，任务池会多一条复习'
     await load()
   } catch (e) {
     error.value = msg(e, '没记下')
@@ -53,32 +74,50 @@ async function add() {
 
 async function mark(remembered: boolean) {
   if (!due.value) return
-  error.value = ''
   try {
     await markReview(due.value.id, remembered)
-    notice.value = remembered ? '记住了，间隔拉长' : '没记住，会再塞进任务池'
+    notice.value = remembered ? '间隔拉长' : '会再塞进待办'
     await load()
   } catch (e) {
     error.value = msg(e, '标记失败')
   }
 }
 
-async function remove(id: number) {
-  error.value = ''
+async function star(n: KnowledgeNote) {
   try {
-    await deleteNote(id)
+    await updateNote({ ...n, starred: n.starred ? 0 : 1 })
     await load()
   } catch (e) {
-    error.value = msg(e, '删不掉')
+    error.value = msg(e, '标不了')
+  }
+}
+
+async function saveEdit(n: KnowledgeNote) {
+  try {
+    await updateNote({ ...n, title: editTitle.value, content: editContent.value })
+    editing.value = null
+    await load()
+  } catch (e) {
+    error.value = msg(e, '改不了')
+  }
+}
+
+async function merge(toId: number) {
+  if (!mergeFrom.value || mergeFrom.value === toId) return
+  try {
+    await mergeNotes(mergeFrom.value, toId)
+    mergeFrom.value = null
+    notice.value = '已合并'
+    await load()
+  } catch (e) {
+    error.value = msg(e, '合并不了')
   }
 }
 
 async function dump() {
-  error.value = ''
   try {
-    const text = await exportNotes()
-    await navigator.clipboard.writeText(text || '')
-    notice.value = '已复制到剪贴板'
+    await navigator.clipboard.writeText((await exportNotes()) || '')
+    notice.value = '已复制'
   } catch (e) {
     error.value = msg(e, '导出失败')
   }
@@ -89,42 +128,57 @@ async function dump() {
   <AppShell>
     <main class="screen">
       <p class="kicker">知识点</p>
-      <h2 class="task-title" style="font-size: 22px">记下来，到期再见面</h2>
-      <p class="hint">新建会按艾宾浩斯排复习，并在任务池生成「复习：…」。</p>
+      <p v-if="week" class="muted">本周 {{ week.count }} 条</p>
 
       <div v-if="due" class="panel" style="margin: 16px 0">
-        <p class="kicker">到期一张</p>
+        <p class="kicker">到期</p>
         <h3 class="task-title">{{ dueNote?.title || '笔记 ' + due.noteId }}</h3>
-        <p class="muted">{{ dueNote?.content || '打开这条，看看还记不记得。' }}</p>
+        <p class="muted">{{ dueNote?.content }}</p>
         <div class="btn-row" style="margin-top: 10px">
           <button class="btn btn--primary" type="button" @click="mark(true)">还记得</button>
           <button class="btn" type="button" @click="mark(false)">忘了</button>
         </div>
       </div>
-      <p v-else class="banner" style="margin: 16px 0">这会儿没有到期卡片。</p>
+      <p v-else class="banner" style="margin: 16px 0">没有到期卡片。</p>
 
-      <form class="stack" @submit.prevent="add">
-        <input v-model="title" class="field" placeholder="标题，比如不规则动词" />
-        <textarea v-model="content" class="field" placeholder="内容，给以后的自己看" />
+      <button class="linkish" type="button" @click="addOpen = !addOpen">{{ addOpen ? '收起' : '记下一条' }}</button>
+      <form v-if="addOpen" class="stack" style="margin-top: 8px" @submit.prevent="add">
+        <input v-model="title" class="field" placeholder="标题" />
+        <textarea v-model="content" class="field" placeholder="内容" />
         <input v-model="tags" class="field" placeholder="标签，逗号分隔" />
         <button class="btn btn--primary" type="submit">记下</button>
       </form>
 
-      <p v-if="week" class="muted" style="margin-top: 16px">本周 {{ week.count }} 条</p>
-      <button class="btn btn--ghost" style="margin-top: 8px" type="button" @click="dump">复制导出文本</button>
+      <div class="chips" style="margin-top: 16px">
+        <button class="chip" :class="{ 'is-on': starredOnly }" type="button" @click="starredOnly = !starredOnly; load()">只要星标</button>
+        <button class="linkish" type="button" @click="dump">复制导出</button>
+      </div>
+      <input v-model="tagFilter" class="field" placeholder="按标签筛，回车" @keyup.enter="load" />
 
       <p v-if="notice" class="banner" style="margin-top: 12px">{{ notice }}</p>
       <p v-if="error" class="toast">{{ error }}</p>
 
-      <div class="stack" style="margin-top: 16px">
-        <article v-for="n in notes" :key="n.id" class="panel">
-          <h3 class="task-title">{{ n.title }}</h3>
-          <p class="muted">{{ n.mastery || '未标掌握度' }}</p>
+      <article v-for="n in notes" :key="n.id" class="panel" style="margin-top: 8px">
+        <template v-if="editing === n.id">
+          <input v-model="editTitle" class="field" />
+          <textarea v-model="editContent" class="field" />
+          <button class="btn" type="button" @click="saveEdit(n)">保存</button>
+        </template>
+        <template v-else>
+          <h3 class="task-title">{{ n.title }} {{ n.starred ? '★' : '' }}</h3>
+          <p class="muted">{{ n.mastery }}</p>
           <p v-if="n.content">{{ n.content }}</p>
-          <button class="btn btn--ghost" type="button" @click="remove(n.id)">删掉</button>
-        </article>
-      </div>
-      <p v-if="!notes.length" class="hint">还没有笔记。</p>
+        </template>
+        <div class="chips" style="margin-top: 8px">
+          <button class="linkish" type="button" @click="star(n)">星标</button>
+          <button class="linkish" type="button" @click="editing = n.id; editTitle = n.title; editContent = n.content || ''">改</button>
+          <button class="linkish" type="button" @click="mergeFrom = mergeFrom === n.id ? null : n.id">
+            {{ mergeFrom === n.id ? '取消合并' : '并入其他' }}
+          </button>
+          <button v-if="mergeFrom && mergeFrom !== n.id" class="linkish" type="button" @click="merge(n.id)">并到这里</button>
+          <button class="linkish" type="button" @click="deleteNote(n.id).then(load)">删</button>
+        </div>
+      </article>
     </main>
   </AppShell>
 </template>
