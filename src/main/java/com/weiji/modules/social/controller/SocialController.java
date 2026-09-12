@@ -44,6 +44,16 @@ public class SocialController {
         return Result.ok(socialService.friends(Currents.userId()));
     }
 
+    @GetMapping("/friends/requests")
+    public Result<List<Map<String, Object>>> pendingRequests() {
+        return Result.ok(socialService.pendingRequests(Currents.userId()));
+    }
+
+    @GetMapping("/teams")
+    public Result<List<Map<String, Object>>> myTeams() {
+        return Result.ok(socialService.myTeams(Currents.userId()));
+    }
+
     @PostMapping("/teams")
     public Result<Team> team(@RequestBody TeamRequest request) {
         return Result.ok(socialService.createTeam(Currents.userId(), request.getName(), request.getGoalDesc(), request.getMemberId()));

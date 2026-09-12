@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -55,6 +56,11 @@ public class UserController {
     @GetMapping("/goals")
     public Result<List<UserGoal>> goals() {
         return Result.ok(userService.goals());
+    }
+
+    @GetMapping("/search")
+    public Result<UserVO> search(@RequestParam String phone) {
+        return Result.ok(userService.searchByPhone(phone));
     }
 
     @PostMapping("/goals/{id}/decompose")

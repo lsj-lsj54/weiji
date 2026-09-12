@@ -5,7 +5,6 @@ import com.weiji.framework.security.Currents;
 import com.weiji.modules.point.entity.PointLedger;
 import com.weiji.modules.point.entity.Reward;
 import com.weiji.modules.point.entity.RewardRedemption;
-import com.weiji.modules.point.entity.UserBadge;
 import com.weiji.modules.point.entity.UserItem;
 import com.weiji.modules.point.service.PointService;
 import lombok.Data;
@@ -68,7 +67,7 @@ public class PointController {
     }
 
     @GetMapping("/badges")
-    public Result<List<UserBadge>> badges() {
+    public Result<List<Map<String, Object>>> badges() {
         return Result.ok(pointService.myBadges(Currents.userId()));
     }
 

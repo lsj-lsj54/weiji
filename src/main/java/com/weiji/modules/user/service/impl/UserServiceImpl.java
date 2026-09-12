@@ -125,6 +125,18 @@ public class UserServiceImpl implements UserService {
         return created;
     }
 
+    @Override
+    public UserVO searchByPhone(String phone) {
+        if (StringUtils.isBlank(phone)) {
+            throw new BizException(ErrorCode.BAD_REQUEST, "手机号不能为空");
+        }
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone.trim()));
+        if (user == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND);
+        }
+        return toVo(user);
+    }
+
     private User loadCurrent() {
         User user = userMapper.selectById(Currents.userId());
         if (user == null) {

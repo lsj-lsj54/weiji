@@ -11,6 +11,7 @@
 | POST | `/api/auth/refresh` | 刷新令牌 |
 | POST | `/api/auth/logout` | 登出 |
 | GET | `/api/user/me` | 当前用户 |
+| GET | `/api/user/search?phone=` | 按手机号精确查找，返回 id/昵称/手机号 |
 | PUT | `/api/user/profile` | 昵称/头像 |
 | GET/PUT | `/api/user/preference` | 精力状态、休息日 JSON 如 `[0]`、免打扰 `"22:00-07:00"`、日/周专注目标 |
 | POST/GET | `/api/user/goals` | 大目标 |
@@ -56,7 +57,7 @@
 | POST | `/api/point/rewards/{id}/redeem` | 锁定/冷却状态机 |
 | POST | `/api/point/donate` | `{ amount }` 公益 |
 | GET | `/api/point/items` | 道具 |
-| GET | `/api/point/badges` | 徽章 |
+| GET | `/api/point/badges` | 我的徽章（`id, badgeId, code, name, description`） |
 | GET | `/api/point/time-bill` | `range=day\|week\|month` |
 | GET | `/api/point/focus-board` | 专注看板+目标进度 |
 | GET | `/api/point/evening-summary` | 当日文字小结 |
@@ -83,8 +84,10 @@
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | POST | `/api/social/friends/requests` | `{ userId }` |
+| GET | `/api/social/friends/requests` | 待处理申请（含对方昵称、手机号） |
 | POST | `/api/social/friends/requests/{id}/handle` | `{ accept }` |
 | GET | `/api/social/friends` | 好友 |
+| GET | `/api/social/teams` | 我加入的队伍及成员进度 |
 | POST | `/api/social/teams` | `{ name, goalDesc, memberId }` |
 | POST/GET | `/api/social/teams/{id}/checkin` `/progress` | 组队打卡，全员完成后额外积分 |
 | POST/GET | `/api/social/plaza` | 匿名广场 |

@@ -260,6 +260,51 @@ public class SocialServiceImpl implements SocialService {
         return list;
     }
 
+    @Override
+    public List<Map<String, Object>> pendingRequests(Long userId) {
+        List<FriendRequest> pending = friendRequestMapper.selectList(new LambdaQueryWrapper<FriendRequest>()
+                .eq(FriendRequest::getToUserId, userId)
+                .eq(FriendRequest::getStatus, "PENDING")
+                .orderByDesc(FriendRequest::getId));
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (FriendRequest req : pending) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", req.getId());
+            row.put("fromUserId", req.getFromUserId());
+            row.put("toUserId", req.getToUserId());
+            row.put("status", req.getStatus());
+            User from = userMapper.selectById(req.getFromUserId());
+            row.put("nickname", from == null ? req.getFromUserId() : from.getNickname());
+            row.put("phone", from == null ? null : from.getPhone());
+            list.add(row);
+        }
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> myTeams(Long userId) {
+        List<TeamMember> memberships = teamMemberMapper.selectList(new LambdaQueryWrapper<TeamMember>()
+                .eq(TeamMember::getUserId, userId)
+                .orderByDesc(TeamMember::getId));
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (TeamMember membership : memberships) {
+            Team team = teamMapper.selectById(membership.getTeamId());
+            if (team == null) {
+                continue;
+            }
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", team.getId());
+            row.put("name", team.getName());
+            row.put("goalDesc", team.getGoalDesc());
+            row.put("ownerId", team.getOwnerId());
+            row.put("status", team.getStatus());
+            row.put("finishedCount", membership.getFinishedCount());
+            row.put("members", teamProgress(team.getId()));
+            list.add(row);
+        }
+        return list;
+    }
+
     private void insertFriend(Long userId, Long friendId) {
         FriendRelation rel = new FriendRelation();
         rel.setUserId(userId);

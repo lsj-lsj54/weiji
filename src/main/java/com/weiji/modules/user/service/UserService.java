@@ -22,4 +22,6 @@ public interface UserService {
     List<UserGoal> goals();
 
     List<com.weiji.modules.task.entity.Task> decomposeGoal(Long goalId, Integer chunkMinutes);
+
+    UserVO searchByPhone(String phone);
 }

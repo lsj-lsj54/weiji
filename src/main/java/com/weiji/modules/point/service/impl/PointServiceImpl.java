@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,8 +211,21 @@ public class PointServiceImpl implements PointService {
     }
 
     @Override
-    public List<UserBadge> myBadges(Long userId) {
-        return userBadgeMapper.selectList(new LambdaQueryWrapper<UserBadge>().eq(UserBadge::getUserId, userId));
+    public List<Map<String, Object>> myBadges(Long userId) {
+        List<UserBadge> owned = userBadgeMapper.selectList(new LambdaQueryWrapper<UserBadge>()
+                .eq(UserBadge::getUserId, userId));
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (UserBadge ub : owned) {
+            Badge badge = badgeMapper.selectById(ub.getBadgeId());
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", ub.getId());
+            row.put("badgeId", ub.getBadgeId());
+            row.put("code", badge == null ? null : badge.getCode());
+            row.put("name", badge == null ? ("徽章 " + ub.getBadgeId()) : badge.getName());
+            row.put("description", badge == null ? null : badge.getDescription());
+            list.add(row);
+        }
+        return list;
     }
 
     @Override

@@ -39,4 +39,8 @@ public interface SocialService {
     DeskSession getDesk(Long userId, Long sessionId);
 
     List<Map<String, Object>> weekRank(Long userId);
+
+    List<Map<String, Object>> pendingRequests(Long userId);
+
+    List<Map<String, Object>> myTeams(Long userId);
 }

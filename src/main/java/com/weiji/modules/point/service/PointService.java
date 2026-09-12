@@ -3,7 +3,6 @@ package com.weiji.modules.point.service;
 import com.weiji.modules.point.entity.PointLedger;
 import com.weiji.modules.point.entity.Reward;
 import com.weiji.modules.point.entity.RewardRedemption;
-import com.weiji.modules.point.entity.UserBadge;
 import com.weiji.modules.point.entity.UserItem;
 
 import java.time.LocalDate;
@@ -34,7 +33,7 @@ public interface PointService {
 
     void grantBadge(Long userId, String code);
 
-    List<UserBadge> myBadges(Long userId);
+    List<Map<String, Object>> myBadges(Long userId);
 
     void touchStreak(Long userId);
 
