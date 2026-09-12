@@ -220,9 +220,10 @@ async function onAbandon() {
       </p>
       <p v-if="error" class="banner banner--warn" style="margin-top: 12px">
         {{ error }}
-        <button v-if="error.includes('休息日') || error.includes('免打扰')" class="linkish" type="button" @click="startBare">
-          空手计时
-        </button>
+        <template v-if="error.includes('免打扰') || error.includes('休息日')">
+          <router-link class="linkish" to="/me">去偏好里改</router-link>
+          <button class="linkish" type="button" @click="startBare">空手计时</button>
+        </template>
       </p>
     </main>
   </AppShell>

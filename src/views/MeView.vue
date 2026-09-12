@@ -12,7 +12,7 @@ const router = useRouter()
 const nickname = ref('')
 const energy = ref('ENERGETIC')
 const restSet = ref<number[]>([])
-const dnd = ref('22:00-07:00')
+const dnd = ref('')
 const daily = ref(30)
 const weekly = ref(180)
 const error = ref('')
@@ -48,7 +48,7 @@ onMounted(async () => {
   nickname.value = auth.user?.nickname || ''
   energy.value = auth.preference?.energyStatus || 'ENERGETIC'
   restSet.value = parseRest(auth.preference?.restDays)
-  dnd.value = auth.preference?.dndPeriods || '22:00-07:00'
+  dnd.value = auth.preference?.dndPeriods || ''
   daily.value = auth.preference?.dailyFocusMinutes || 30
   weekly.value = auth.preference?.weeklyFocusMinutes || 180
 })
@@ -61,7 +61,7 @@ async function save() {
     const pref = await updatePreference({
       energyStatus: energy.value,
       restDays: JSON.stringify(restSet.value),
-      dndPeriods: dnd.value,
+      dndPeriods: dnd.value.trim(),
       dailyFocusMinutes: daily.value,
       weeklyFocusMinutes: weekly.value,
     })
@@ -117,7 +117,7 @@ async function out() {
             {{ d.l }}
           </button>
         </div>
-        <input v-model="dnd" class="field" placeholder="免打扰 22:00-07:00" />
+        <input v-model="dnd" class="field" placeholder="免打扰，空着则不限制。例 22:00-07:00" />
         <input v-model.number="daily" class="field" type="number" min="0" placeholder="每日分钟" />
         <input v-model.number="weekly" class="field" type="number" min="0" placeholder="每周分钟" />
         <button class="btn btn--primary" type="submit">保存</button>
