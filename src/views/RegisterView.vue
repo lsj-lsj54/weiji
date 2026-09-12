@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import { ApiError } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 
@@ -28,7 +29,10 @@ async function submit() {
 
 <template>
   <main class="screen screen--auth">
-    <p class="kicker" style="margin-top: 48px">从第一条碎片开始</p>
+    <div class="auth-bar">
+      <ThemeToggle />
+    </div>
+    <p class="kicker" style="margin-top: 32px">从第一条碎片开始</p>
     <h1 class="brand">微积</h1>
     <form class="stack" style="margin-top: 32px" @submit.prevent="submit">
       <input v-model="phone" class="field" inputmode="numeric" autocomplete="username" placeholder="手机号" />

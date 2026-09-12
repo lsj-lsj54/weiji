@@ -214,7 +214,7 @@ const maxDelay = () => Math.max(1, ...(curve.value?.points || [1]))
             <div>{{ l.remark || l.bizType }}</div>
             <div class="muted" style="font-size: 13px">{{ l.createdAt }}</div>
           </div>
-          <div class="num" style="color: var(--minute-cyan)">{{ l.changeAmount > 0 ? '+' : '' }}{{ l.changeAmount }}</div>
+          <div class="num num--accent">{{ l.changeAmount > 0 ? '+' : '' }}{{ l.changeAmount }}</div>
         </article>
       </section>
     </main>

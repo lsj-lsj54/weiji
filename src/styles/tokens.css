@@ -1,12 +1,4 @@
 :root {
-  --void-ink: #0c1220;
-  --fog-glass: #152033;
-  --street-brass: #d4a24a;
-  --minute-cyan: #7ec8c3;
-  --porcelain: #e8eef4;
-  --mute-slate: #8a97a8;
-  --line: rgba(232, 238, 244, 0.08);
-  --danger: #c45c4a;
   --radius-panel: 2px;
   --radius-btn: 999px;
   --font-serif: 'Noto Serif SC', serif;
@@ -14,6 +6,50 @@
   --font-num: 'Space Grotesk', ui-monospace, sans-serif;
   --phone-width: 430px;
   --dock-h: 72px;
+  --danger: #c45c4a;
+}
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --void-ink: #12181c;
+  --fog-glass: #1a2328;
+  --street-brass: #c4a056;
+  --minute-cyan: #7ebeb8;
+  --porcelain: #e4ebe8;
+  --mute-slate: #8b97a4;
+  --line: rgba(228, 235, 232, 0.12);
+  --accent-ink: #1a1408;
+  --dock-bg: rgba(18, 24, 28, 0.94);
+  --ring-track: rgba(228, 235, 232, 0.1);
+  --ring-fill: rgba(196, 160, 86, 0.35);
+  --ring-fill-live: var(--street-brass);
+  --danger-text: #f0c4bc;
+  --danger-line: rgba(196, 92, 74, 0.5);
+  --glow-a: rgba(196, 160, 86, 0.09);
+  --glow-b: rgba(15, 94, 88, 0.05);
+  --phone-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --void-ink: #e4ebe6;
+  --fog-glass: #f3f6f4;
+  --street-brass: #0f5e58;
+  --minute-cyan: #2a8a84;
+  --porcelain: #1c2a28;
+  --mute-slate: #5a6e68;
+  --line: rgba(28, 42, 40, 0.12);
+  --accent-ink: #f4fffc;
+  --dock-bg: rgba(243, 246, 244, 0.92);
+  --ring-track: rgba(28, 42, 40, 0.12);
+  --ring-fill: rgba(15, 94, 88, 0.28);
+  --ring-fill-live: var(--street-brass);
+  --danger-text: #9a3d32;
+  --danger-line: rgba(181, 74, 60, 0.45);
+  --glow-a: rgba(15, 94, 88, 0.08);
+  --glow-b: rgba(90, 110, 104, 0.06);
+  --phone-shadow: 0 24px 80px rgba(28, 42, 40, 0.12);
 }
 
 *,
@@ -35,8 +71,8 @@ body {
 
 body {
   background-image:
-    radial-gradient(1200px 600px at 70% -10%, rgba(212, 162, 74, 0.07), transparent 55%),
-    radial-gradient(800px 500px at 10% 110%, rgba(126, 200, 195, 0.06), transparent 50%);
+    radial-gradient(1200px 600px at 70% -10%, var(--glow-a), transparent 55%),
+    radial-gradient(800px 500px at 10% 110%, var(--glow-b), transparent 50%);
 }
 
 button,
@@ -80,7 +116,7 @@ button {
   .phone {
     min-height: calc(100dvh - 32px);
     margin: 16px 0;
-    box-shadow: 0 0 0 1px var(--line), 0 24px 80px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 0 1px var(--line), var(--phone-shadow);
   }
 }
 
@@ -91,6 +127,24 @@ button {
 
 .screen--auth {
   padding: 20px 20px 32px;
+}
+
+.shell-head {
+  margin-bottom: 12px;
+  padding: 20px 20px 0;
+}
+
+.shell-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.auth-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
 .brand {
@@ -152,7 +206,7 @@ button {
 .btn--primary {
   background: var(--street-brass);
   border-color: var(--street-brass);
-  color: #1a1408;
+  color: var(--accent-ink);
   font-weight: 600;
 }
 
@@ -166,8 +220,8 @@ button {
 }
 
 .btn--danger {
-  border-color: rgba(196, 92, 74, 0.5);
-  color: #f0c4bc;
+  border-color: var(--danger-line);
+  color: var(--danger-text);
 }
 
 .btn-row {
@@ -212,8 +266,8 @@ textarea.field {
 }
 
 .chip.is-on {
-  border-color: var(--minute-cyan);
-  color: var(--porcelain);
+  border-color: var(--street-brass);
+  color: var(--street-brass);
 }
 
 .chip.is-live {
@@ -233,7 +287,7 @@ textarea.field {
 }
 
 .toast {
-  color: #f0c4bc;
+  color: var(--danger-text);
   font-size: 14px;
 }
 
@@ -249,6 +303,10 @@ textarea.field {
   font-variant-numeric: tabular-nums;
 }
 
+.num--accent {
+  color: var(--minute-cyan);
+}
+
 .dock {
   position: absolute;
   left: 0;
@@ -258,11 +316,12 @@ textarea.field {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--line);
-  background: rgba(12, 18, 32, 0.94);
+  background: var(--dock-bg);
   backdrop-filter: blur(10px);
 }
 
 .dock a {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -272,7 +331,18 @@ textarea.field {
 }
 
 .dock a.router-link-active {
-  color: var(--porcelain);
+  color: var(--street-brass);
+}
+
+.dock a.router-link-active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: var(--street-brass);
+  transform: translateX(-50%);
 }
 
 .task-title {
@@ -285,6 +355,11 @@ textarea.field {
   font-size: 13px;
   color: var(--mute-slate);
   margin: 0 0 6px;
+}
+
+.theme-toggle .chip {
+  padding: 6px 10px;
+  font-size: 13px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -52,17 +52,17 @@ svg {
 }
 .track {
   fill: none;
-  stroke: rgba(232, 238, 244, 0.08);
+  stroke: var(--ring-track);
   stroke-width: 3;
 }
 .fill {
   fill: none;
-  stroke: rgba(212, 162, 74, 0.35);
+  stroke: var(--ring-fill);
   stroke-width: 3;
   stroke-linecap: square;
 }
 .is-live .fill {
-  stroke: var(--street-brass);
+  stroke: var(--ring-fill-live);
 }
 .ring__label {
   position: absolute;
