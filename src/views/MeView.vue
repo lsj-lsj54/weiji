@@ -1,22 +1,46 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '@/components/AppShell.vue'
 import { ApiError } from '@/api/http'
 import { updatePreference, updateProfile } from '@/api/user'
-import { ENERGIES } from '@/api/types'
+import { ENERGIES, WEEKDAYS } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
 const nickname = ref('')
 const energy = ref('ENERGETIC')
-const restDays = ref('[0]')
+const restSet = ref<number[]>([0])
 const dnd = ref('22:00-07:00')
 const daily = ref(30)
 const weekly = ref(180)
 const error = ref('')
 const saved = ref('')
+
+const restLabel = computed(() =>
+  restSet.value.length ? restSet.value.map((v) => WEEKDAYS.find((d) => d.v === v)?.l).join('、') : '无',
+)
+
+function parseRest(raw?: string) {
+  if (!raw) return [0]
+  try {
+    const arr = JSON.parse(raw) as unknown
+    if (Array.isArray(arr)) return arr.map(Number).filter((n) => n >= 0 && n <= 6)
+  } catch {
+    const nums = raw.match(/\d/g)
+    if (nums) return nums.map(Number)
+  }
+  return [0]
+}
+
+function toggleDay(v: number) {
+  if (restSet.value.includes(v)) {
+    restSet.value = restSet.value.filter((x) => x !== v)
+  } else {
+    restSet.value = [...restSet.value, v].sort()
+  }
+}
 
 onMounted(async () => {
   if (!auth.user) {
@@ -28,7 +52,7 @@ onMounted(async () => {
   }
   nickname.value = auth.user?.nickname || ''
   energy.value = auth.preference?.energyStatus || 'ENERGETIC'
-  restDays.value = auth.preference?.restDays || '[0]'
+  restSet.value = parseRest(auth.preference?.restDays)
   dnd.value = auth.preference?.dndPeriods || '22:00-07:00'
   daily.value = auth.preference?.dailyFocusMinutes || 30
   weekly.value = auth.preference?.weeklyFocusMinutes || 180
@@ -41,7 +65,7 @@ async function save() {
     await updateProfile({ nickname: nickname.value.trim() })
     const pref = await updatePreference({
       energyStatus: energy.value,
-      restDays: restDays.value,
+      restDays: JSON.stringify(restSet.value),
       dndPeriods: dnd.value,
       dailyFocusMinutes: daily.value,
       weeklyFocusMinutes: weekly.value,
@@ -65,7 +89,7 @@ async function out() {
     <main class="screen">
       <p class="kicker">我</p>
       <h2 class="task-title" style="font-size: 22px">{{ auth.user?.nickname || '未命名' }}</h2>
-      <p class="muted">{{ auth.user?.phone }}</p>
+      <p class="muted">{{ auth.user?.phone }} · 编号 {{ auth.user?.id }}</p>
 
       <form class="stack" style="margin-top: 24px" @submit.prevent="save">
         <input v-model="nickname" class="field" placeholder="昵称" />
@@ -82,8 +106,20 @@ async function out() {
             {{ e.label }}
           </button>
         </div>
-        <label class="hint">休息日 JSON，如 [0] 表示周日</label>
-        <input v-model="restDays" class="field" />
+        <p class="kicker">休息日（当天不匹配任务）</p>
+        <div class="chips">
+          <button
+            v-for="d in WEEKDAYS"
+            :key="d.v"
+            class="chip"
+            :class="{ 'is-on': restSet.includes(d.v) }"
+            type="button"
+            @click="toggleDay(d.v)"
+          >
+            {{ d.l }}
+          </button>
+        </div>
+        <p class="hint">已选：周{{ restLabel }}</p>
         <label class="hint">免打扰，例如 22:00-07:00</label>
         <input v-model="dnd" class="field" />
         <label class="hint">每日专注目标（分钟）</label>
@@ -96,9 +132,9 @@ async function out() {
       <p v-if="error" class="toast">{{ error }}</p>
 
       <div class="stack" style="margin-top: 28px">
-        <router-link class="panel" to="/tasks">任务池</router-link>
-        <router-link class="panel" to="/knowledge">知识点（轻量）</router-link>
-        <router-link class="panel" to="/social">本周榜（轻量）</router-link>
+        <router-link class="panel" to="/tasks">任务池、模板、大目标</router-link>
+        <router-link class="panel" to="/knowledge">知识点与复习</router-link>
+        <router-link class="panel" to="/social">好友、广场、组队、同桌</router-link>
         <button class="btn" type="button" @click="out">退出</button>
       </div>
     </main>

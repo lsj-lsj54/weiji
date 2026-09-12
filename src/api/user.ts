@@ -1,5 +1,5 @@
 import { request } from './http'
-import type { UserPreference, UserProfile } from './types'
+import type { TaskItem, UserGoal, UserPreference, UserProfile } from './types'
 
 export function fetchMe() {
   return request<UserProfile>({ url: '/api/user/me' })
@@ -15,4 +15,20 @@ export function fetchPreference() {
 
 export function updatePreference(payload: Partial<UserPreference>) {
   return request<UserPreference>({ method: 'PUT', url: '/api/user/preference', data: payload })
+}
+
+export function listGoals() {
+  return request<UserGoal[]>({ url: '/api/user/goals' })
+}
+
+export function createGoal(payload: Partial<UserGoal>) {
+  return request<UserGoal>({ method: 'POST', url: '/api/user/goals', data: payload })
+}
+
+export function decomposeGoal(id: number, chunkMinutes = 15) {
+  return request<TaskItem[]>({
+    method: 'POST',
+    url: `/api/user/goals/${id}/decompose`,
+    data: { chunkMinutes },
+  })
 }

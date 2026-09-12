@@ -5,7 +5,7 @@ import FocusRing from '@/components/FocusRing.vue'
 import IdleDial from '@/components/IdleDial.vue'
 import { ApiError } from '@/api/http'
 import { matchTasks } from '@/api/task'
-import { ENERGIES, SCENES, type FocusSession, type TaskItem } from '@/api/types'
+import { ENERGIES, SCENES, CATEGORIES, type FocusSession, type TaskItem } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
 import { useFocusStore } from '@/stores/focus'
 
@@ -14,6 +14,7 @@ const focus = useFocusStore()
 
 const minutes = ref(15)
 const scene = ref('HOME')
+const category = ref('')
 const energy = ref(auth.preference?.energyStatus || 'ENERGETIC')
 const matches = ref<TaskItem[]>([])
 const error = ref('')
@@ -24,10 +25,7 @@ const lastFinish = ref<FocusSession | null>(null)
 const energyLabel = computed(() => ENERGIES.find((e) => e.code === energy.value)?.label || '此刻')
 const primary = computed(() => matches.value[0] || null)
 const rest = computed(() => matches.value.slice(1))
-const planned = computed(() => {
-  if (primary.value?.durationMinutes) return primary.value.durationMinutes
-  return minutes.value
-})
+const planned = computed(() => focus.plannedMinutes)
 
 onMounted(async () => {
   if (!auth.user) {
@@ -50,6 +48,7 @@ async function match() {
     matches.value = await matchTasks({
       idleMinutes: minutes.value,
       sceneCode: scene.value,
+      category: category.value || undefined,
       energyStatus: energy.value,
     })
     if (!matches.value.length) {
@@ -120,6 +119,10 @@ async function onAbandon() {
       <template v-else>
         <IdleDial v-model="minutes" />
 
+        <p class="hint" style="margin-top: 8px">
+          <router-link class="linkish" to="/tasks">打开任务池</router-link>
+        </p>
+
         <p class="kicker">你在哪</p>
         <div class="chips">
           <button
@@ -131,6 +134,21 @@ async function onAbandon() {
             @click="scene = s.code"
           >
             {{ s.label }}
+          </button>
+        </div>
+
+        <p class="kicker" style="margin-top: 18px">类型（可选）</p>
+        <div class="chips">
+          <button class="chip" :class="{ 'is-on': category === '' }" type="button" @click="category = ''">都可以</button>
+          <button
+            v-for="c in CATEGORIES"
+            :key="c"
+            class="chip"
+            :class="{ 'is-on': category === c }"
+            type="button"
+            @click="category = c"
+          >
+            {{ c }}
           </button>
         </div>
 

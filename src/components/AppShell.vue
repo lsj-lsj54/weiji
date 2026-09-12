@@ -3,8 +3,8 @@ defineProps<{ energy?: string }>()
 </script>
 
 <template>
-  <header class="row" style="margin-bottom: 18px">
-    <h1 class="brand">微积</h1>
+  <header class="row" style="margin-bottom: 18px; padding: 20px 20px 0">
+    <router-link to="/now" class="brand">微积</router-link>
     <span class="muted" style="font-size: 13px">{{ energy || '此刻' }}</span>
   </header>
   <slot />

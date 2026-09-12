@@ -109,11 +109,117 @@ export interface KnowledgeReview {
   nextReviewAt?: string
 }
 
+export interface UserGoal {
+  id: number
+  title: string
+  description?: string
+  targetMinutes?: number
+  finishedMinutes?: number
+  status?: number
+}
+
+export interface TaskTemplate {
+  id: number
+  userId?: number
+  name: string
+  content?: string
+  category?: string
+  durationMinutes?: number
+  sceneCode?: string
+}
+
+export interface DelayCurve {
+  points: number[]
+  completionRate: number
+}
+
+export interface RewardItem {
+  id: number
+  name: string
+  level?: string
+  pointCost?: number
+  lockMode?: number
+  cooldownHours?: number
+  itemCode?: string
+}
+
+export interface UserItem {
+  id: number
+  itemCode: string
+  quantity: number
+}
+
+export interface UserBadge {
+  id: number
+  badgeId: number
+}
+
 export interface RankRow {
   rank: number
   userId: number
   nickname: string
   minutes: number
+}
+
+export interface FriendRow {
+  id: number
+  userId: number
+  friendId: number
+}
+
+export interface PlazaPost {
+  id: number
+  title: string
+  content?: string
+  anonymous?: number
+  templateId?: number
+}
+
+export interface TeamRow {
+  id: number
+  name: string
+  goalDesc?: string
+  ownerId?: number
+}
+
+export interface TeamMember {
+  id: number
+  teamId: number
+  userId: number
+  finishedCount?: number
+}
+
+export interface DeskSession {
+  id: number
+  ownerId: number
+  peerId: number
+  status: string
+}
+
+export interface FriendRequest {
+  id: number
+  fromUserId: number
+  toUserId: number
+  status: string
+}
+
+export const WEEKDAYS = [
+  { v: 0, l: '日' },
+  { v: 1, l: '一' },
+  { v: 2, l: '二' },
+  { v: 3, l: '三' },
+  { v: 4, l: '四' },
+  { v: 5, l: '五' },
+  { v: 6, l: '六' },
+] as const
+
+export const REWARD_LEVELS = ['NORMAL', 'MID', 'HIGH', 'MILESTONE'] as const
+
+export const ITEM_LABEL: Record<string, string> = {
+  SKIP_CARD: '跳过卡',
+  DAY_EXEMPT: '当日豁免',
+  CHARITY: '公益凭证',
+  CUSTOM: '自定义',
 }
 
 export const TASK_STATUS: Record<number, string> = {

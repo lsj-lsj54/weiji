@@ -12,6 +12,7 @@ import type { FocusSession, TaskItem } from '@/api/types'
 
 export const useFocusStore = defineStore('focus', () => {
   const session = ref<FocusSession | null>(null)
+  const plannedMinutes = ref(25)
   const now = ref(Date.now())
   let timer: number | undefined
 
@@ -60,6 +61,7 @@ export const useFocusStore = defineStore('focus', () => {
       clientStartTs: Date.now(),
       sourceType,
     })
+    plannedMinutes.value = task.durationMinutes || 25
     startClock()
   }
 
@@ -68,8 +70,8 @@ export const useFocusStore = defineStore('focus', () => {
       title,
       clientStartTs: Date.now(),
       sourceType: 'FOCUS',
-      remark: String(minutesHint),
     })
+    plannedMinutes.value = minutesHint
     startClock()
   }
 
@@ -100,6 +102,7 @@ export const useFocusStore = defineStore('focus', () => {
 
   return {
     session,
+    plannedMinutes,
     running,
     paused,
     elapsedSeconds,
