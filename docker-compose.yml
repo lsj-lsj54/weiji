@@ -1,13 +1,13 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:latest
     container_name: weiji-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: CHANGE_ME
+      MYSQL_ROOT_PASSWORD: 6
       MYSQL_DATABASE: weiji
       MYSQL_USER: weiji
-      MYSQL_PASSWORD: CHANGE_ME
+      MYSQL_PASSWORD: 6
     ports:
       - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -16,7 +16,7 @@ services:
       - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
   redis:
-    image: redis:7
+    image: redis:7.2-alpine
     container_name: weiji-redis
     restart: unless-stopped
     ports:
