@@ -8,6 +8,7 @@
   --line: rgba(232, 238, 244, 0.08);
   --danger: #c45c4a;
   --radius-panel: 2px;
+  --radius-btn: 999px;
   --font-serif: 'Noto Serif SC', serif;
   --font-sans: 'Noto Sans SC', system-ui, sans-serif;
   --font-num: 'Space Grotesk', ui-monospace, sans-serif;
@@ -137,7 +138,7 @@ button {
   background: transparent;
   color: var(--porcelain);
   padding: 12px 16px;
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-btn);
 }
 
 .btn:focus-visible,
@@ -207,7 +208,7 @@ textarea.field {
   background: transparent;
   padding: 8px 12px;
   color: var(--mute-slate);
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-btn);
 }
 
 .chip.is-on {

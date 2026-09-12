@@ -10,11 +10,11 @@
 
 | 路径 | 主内容 | 主要接口 |
 |---|---|---|
-| `/now` | 拨盘、场景、预加载/匹配、计时 | `preload` `match` `/api/focus/*` `POST /api/task` |
+| `/now` | 手写空闲分钟、场景、预加载/匹配、计时 | `preload` `match` `/api/focus/*` `POST /api/task` |
 | `/tasks` | 待办 / 模板 / 目标 | task CRUD、`import`、`templates`、`goals` `decompose` |
 | `/points` | 账单 / 兑换 / 流水 | `account` `time-bill` `focus-board` `rewards` `donate` `items` `badges` `delay-curve` |
 | `/knowledge` | 到期、列表、记下 | knowledge CRUD `merge` `review` `export` |
-| `/social` | 周榜 / 好友 / 广场 / 组队 | `search?phone=` `friends/requests` `teams` `plaza` `desk` `rank/week` |
+| `/social` | 周榜 / 好友列表 / 广场 / 组队进度 / 同桌轮询 | `search?phone=` `friends` `friends/requests` `teams` `plaza` `desk` `rank/week` |
 | `/me` | 偏好；入口到知识、社交 | `me` `profile` `preference` `logout` |
 
 新后端口：

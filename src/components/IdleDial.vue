@@ -1,69 +1,55 @@
 <script setup lang="ts">
 const minutes = defineModel<number>({ required: true })
 
-const ticks = [5, 10, 15, 20, 25, 30, 45, 60]
+const MIN = 1
+const MAX = 180
+
+function clamp(n: number) {
+  if (!Number.isFinite(n)) return MIN
+  return Math.min(MAX, Math.max(MIN, Math.round(n)))
+}
 
 function bump(delta: number) {
-  minutes.value = Math.min(90, Math.max(5, minutes.value + delta))
+  minutes.value = clamp(minutes.value + delta)
+}
+
+function onInput(event: Event) {
+  const raw = (event.target as HTMLInputElement).value
+  if (raw === '') return
+  minutes.value = clamp(Number(raw))
+}
+
+function onBlur() {
+  minutes.value = clamp(minutes.value)
 }
 </script>
 
 <template>
   <div class="dial">
-    <div class="dial__ring" aria-hidden="true">
-      <span
-        v-for="t in ticks"
-        :key="t"
-        class="tick"
-        :class="{ 'is-on': minutes === t }"
-        :style="{ transform: `rotate(${(t / 60) * 360 - 90}deg)` }"
-      />
-    </div>
     <div class="dial__core">
       <button class="ghost" type="button" aria-label="减少五分钟" @click="bump(-5)">−</button>
-      <div>
-        <div class="num dial__n">{{ minutes }}</div>
-        <div class="muted" style="text-align: center">空闲分钟</div>
-      </div>
+      <label class="dial__label">
+        <input
+          class="num dial__n"
+          type="number"
+          inputmode="numeric"
+          :min="MIN"
+          :max="MAX"
+          :value="minutes"
+          aria-label="空闲分钟"
+          @input="onInput"
+          @blur="onBlur"
+        />
+        <span class="muted">空闲分钟，自己写</span>
+      </label>
       <button class="ghost" type="button" aria-label="增加五分钟" @click="bump(5)">+</button>
-    </div>
-    <div class="chips" style="justify-content: center; margin-top: 18px">
-      <button
-        v-for="t in ticks"
-        :key="'c' + t"
-        class="chip"
-        :class="{ 'is-on': minutes === t }"
-        type="button"
-        @click="minutes = t"
-      >
-        {{ t }}
-      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
 .dial {
-  position: relative;
   padding: 8px 0 4px;
-}
-.dial__ring {
-  position: absolute;
-  inset: 0 40px 70px;
-  pointer-events: none;
-}
-.tick {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 2px;
-  height: 10px;
-  background: rgba(126, 200, 195, 0.28);
-  transform-origin: 0 86px;
-}
-.tick.is-on {
-  background: var(--street-brass);
-  height: 14px;
 }
 .dial__core {
   display: flex;
@@ -72,12 +58,29 @@ function bump(delta: number) {
   gap: 24px;
   min-height: 180px;
 }
+.dial__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
 .dial__n {
+  width: 4.2ch;
   font-size: 88px;
   line-height: 0.9;
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.04em;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 8px;
+  appearance: textfield;
+}
+.dial__n::-webkit-outer-spin-button,
+.dial__n::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
 }
 .ghost {
   width: 40px;
@@ -86,5 +89,6 @@ function bump(delta: number) {
   background: transparent;
   color: var(--mute-slate);
   font-size: 22px;
+  border-radius: var(--radius-btn);
 }
 </style>

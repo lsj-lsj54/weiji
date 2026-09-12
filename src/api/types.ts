@@ -168,6 +168,8 @@ export interface FriendRow {
   id: number
   userId: number
   friendId: number
+  nickname?: string
+  phone?: string
 }
 
 export interface PlazaPost {

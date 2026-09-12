@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import AppShell from '@/components/AppShell.vue'
 import SegmentBar from '@/components/SegmentBar.vue'
 import { ApiError } from '@/api/http'
@@ -7,6 +7,7 @@ import {
   createDesk,
   createTeam,
   favoritePlaza,
+  getDesk,
   handleFriendRequest,
   listFriends,
   listPlaza,
@@ -50,8 +51,28 @@ const teamOpen = ref(false)
 const deskPeer = ref('')
 const deskReport = ref('')
 
+let deskTimer: number | undefined
+
 function msg(e: unknown, fallback: string) {
   return e instanceof ApiError ? e.message : fallback
+}
+
+function stopDeskPoll() {
+  if (deskTimer) {
+    window.clearInterval(deskTimer)
+    deskTimer = undefined
+  }
+}
+
+function startDeskPoll(id: number) {
+  stopDeskPoll()
+  deskTimer = window.setInterval(async () => {
+    try {
+      desk.value = await getDesk(id)
+    } catch {
+      /* keep last snapshot */
+    }
+  }, 3000)
 }
 
 async function load() {
@@ -70,6 +91,15 @@ async function load() {
 }
 
 onMounted(load)
+onUnmounted(stopDeskPoll)
+
+watch(tab, (next) => {
+  if (next !== 'team') {
+    stopDeskPoll()
+  } else if (desk.value) {
+    startDeskPoll(desk.value.id)
+  }
+})
 
 async function search() {
   if (!phone.value.trim()) return
@@ -145,15 +175,47 @@ async function checkin(id: number) {
   }
 }
 
-async function makeDesk() {
-  const uid = Number(deskPeer.value)
+async function attachDesk(session: DeskSession) {
+  desk.value = session
+  notice.value = `同桌 ${session.id}`
+  tab.value = 'team'
+  startDeskPoll(session.id)
+}
+
+async function makeDesk(peerId?: number) {
+  const uid = peerId ?? Number(deskPeer.value)
   if (!uid) return
   try {
-    desk.value = await createDesk(uid)
-    notice.value = `同桌 ${desk.value.id}`
+    await attachDesk(await createDesk(uid))
+    deskPeer.value = ''
   } catch (e) {
     error.value = msg(e, '约不到')
   }
+}
+
+async function beginDesk() {
+  if (!desk.value) return
+  try {
+    desk.value = await startDesk(desk.value.id)
+    startDeskPoll(desk.value.id)
+  } catch (e) {
+    error.value = msg(e, '开始不了')
+  }
+}
+
+async function finishDesk() {
+  if (!desk.value) return
+  try {
+    desk.value = await reportDesk(desk.value.id, true, deskReport.value)
+    deskReport.value = ''
+  } catch (e) {
+    error.value = msg(e, '汇报失败')
+  }
+}
+
+function memberLine(t: TeamCard) {
+  if (!t.members?.length) return '还没有队员进度'
+  return t.members.map((m) => `#${m.userId} 完成 ${m.finishedCount || 0}`).join(' · ')
 }
 </script>
 
@@ -196,9 +258,15 @@ async function makeDesk() {
             <button class="btn" type="button" @click="handle(req.id, false)">拒绝</button>
           </div>
         </article>
-        <p v-if="friends.length" class="muted" style="margin-top: 12px">
-          已互关 {{ friends.length }} 人
-        </p>
+        <p class="kicker" style="margin-top: 16px">已互关 {{ friends.length }} 人</p>
+        <p v-if="!friends.length" class="banner">还没有好友。</p>
+        <article v-for="f in friends" :key="f.id" class="row panel" style="margin-top: 8px">
+          <div>
+            <div>{{ f.nickname || f.friendId }}</div>
+            <p class="muted">{{ f.phone || '#' + f.friendId }}</p>
+          </div>
+          <button class="btn" type="button" @click="makeDesk(f.friendId)">约同桌</button>
+        </article>
       </section>
 
       <section v-else-if="tab === 'plaza'" style="margin-top: 16px">
@@ -226,18 +294,19 @@ async function makeDesk() {
         <article v-for="t in teams" :key="t.id" class="panel" style="margin-top: 8px">
           <h3 class="task-title">{{ t.name }}</h3>
           <p class="muted">{{ t.goalDesc }} · 我完成 {{ t.finishedCount || 0 }}</p>
+          <p class="hint">{{ memberLine(t) }}</p>
           <button class="btn btn--primary" type="button" @click="checkin(t.id)">今日打卡</button>
         </article>
         <p class="kicker" style="margin-top: 16px">同桌</p>
-        <form class="stack" @submit.prevent="makeDesk">
+        <form class="stack" @submit.prevent="makeDesk()">
           <input v-model="deskPeer" class="field" inputmode="numeric" placeholder="对桌用户编号" />
           <button class="btn" type="submit">约同桌</button>
         </form>
         <div v-if="desk" class="stack" style="margin-top: 8px">
-          <p class="muted">{{ desk.id }} · {{ desk.status }}</p>
-          <button class="btn" type="button" @click="startDesk(desk!.id).then((d) => (desk = d))">开始</button>
+          <p class="muted">编号 {{ desk.id }} · {{ desk.status }}</p>
+          <button class="btn" type="button" @click="beginDesk">开始</button>
           <input v-model="deskReport" class="field" placeholder="汇报一句" />
-          <button class="btn" type="button" @click="reportDesk(desk!.id, true, deskReport).then((d) => (desk = d))">写完了</button>
+          <button class="btn" type="button" @click="finishDesk">写完了</button>
         </div>
       </section>
     </main>
