@@ -357,16 +357,41 @@ textarea.field {
   margin: 0 0 6px;
 }
 
-.theme-toggle .chip {
-  padding: 6px 10px;
-  font-size: 13px;
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--porcelain);
+  border-radius: var(--radius-btn);
 }
 
-html.is-theme-switching,
-html.is-theme-switching body,
-html.is-theme-switching .phone,
-html.is-theme-switching .dock {
-  transition: background-color 200ms ease;
+.theme-toggle svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--minute-cyan);
+  outline-offset: 2px;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

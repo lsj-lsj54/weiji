@@ -2,7 +2,18 @@ import { ref } from 'vue'
 
 export type Theme = 'light' | 'dark'
 
+export type ThemeOrigin = { x: number; y: number }
+
 const STORAGE_KEY = 'weiji-theme'
+const SPREAD_MS = 400
+
+type ViewTransition = {
+  ready: Promise<void>
+}
+
+type DocumentWithViewTransition = Document & {
+  startViewTransition?: (update: () => void) => ViewTransition
+}
 
 function readStored(): Theme | null {
   try {
@@ -24,10 +35,6 @@ function currentTheme(): Theme {
   return readStored() || systemTheme()
 }
 
-const SWITCH_MS = 200
-
-let switchTimer: number | undefined
-
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
@@ -37,15 +44,34 @@ function apply(next: Theme) {
   document.documentElement.style.colorScheme = next
 }
 
-function markSwitching() {
-  if (prefersReducedMotion()) return
-  const root = document.documentElement
-  root.classList.add('is-theme-switching')
-  if (switchTimer !== undefined) window.clearTimeout(switchTimer)
-  switchTimer = window.setTimeout(() => {
-    root.classList.remove('is-theme-switching')
-    switchTimer = undefined
-  }, SWITCH_MS)
+function persist(next: Theme) {
+  theme.value = next
+  apply(next)
+  try {
+    localStorage.setItem(STORAGE_KEY, next)
+  } catch {
+    /* ignore */
+  }
+}
+
+function canAnimate() {
+  const doc = document as DocumentWithViewTransition
+  return !prefersReducedMotion() && typeof doc.startViewTransition === 'function'
+}
+
+function spreadFrom(origin: ThemeOrigin) {
+  const { x, y } = origin
+  const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+  document.documentElement.animate(
+    {
+      clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
+    },
+    {
+      duration: SPREAD_MS,
+      easing: 'ease-in-out',
+      pseudoElement: '::view-transition-new(root)',
+    },
+  )
 }
 
 const theme = ref<Theme>(typeof document === 'undefined' ? 'dark' : currentTheme())
@@ -55,20 +81,22 @@ if (typeof document !== 'undefined') {
 }
 
 export function useTheme() {
-  function setTheme(next: Theme) {
+  function setTheme(next: Theme, origin?: ThemeOrigin) {
     if (next === theme.value) return
-    markSwitching()
-    theme.value = next
-    apply(next)
-    try {
-      localStorage.setItem(STORAGE_KEY, next)
-    } catch {
-      /* ignore */
+    const commit = () => persist(next)
+    const doc = document as DocumentWithViewTransition
+    if (!origin || !canAnimate() || !doc.startViewTransition) {
+      commit()
+      return
     }
+    const transition = doc.startViewTransition(commit)
+    transition.ready.then(() => spreadFrom(origin)).catch(() => {
+      /* aborted */
+    })
   }
 
-  function toggle() {
-    setTheme(theme.value === 'light' ? 'dark' : 'light')
+  function toggle(origin?: ThemeOrigin) {
+    setTheme(theme.value === 'light' ? 'dark' : 'light', origin)
   }
 
   return { theme, setTheme, toggle }
