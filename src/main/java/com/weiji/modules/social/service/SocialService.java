@@ -18,6 +18,8 @@ public interface SocialService {
 
     List<FriendRelation> friends(Long userId);
 
+    List<Map<String, Object>> friendList(Long userId);
+
     Team createTeam(Long ownerId, String name, String goalDesc, Long memberId);
 
     TeamMember checkin(Long userId, Long teamId);

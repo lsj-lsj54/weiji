@@ -3,7 +3,6 @@ package com.weiji.modules.social.controller;
 import com.weiji.common.result.Result;
 import com.weiji.framework.security.Currents;
 import com.weiji.modules.social.entity.DeskSession;
-import com.weiji.modules.social.entity.FriendRelation;
 import com.weiji.modules.social.entity.FriendRequest;
 import com.weiji.modules.social.entity.PlazaPost;
 import com.weiji.modules.social.entity.Team;
@@ -40,8 +39,8 @@ public class SocialController {
     }
 
     @GetMapping("/friends")
-    public Result<List<FriendRelation>> friends() {
-        return Result.ok(socialService.friends(Currents.userId()));
+    public Result<List<Map<String, Object>>> friends() {
+        return Result.ok(socialService.friendList(Currents.userId()));
     }
 
     @GetMapping("/friends/requests")

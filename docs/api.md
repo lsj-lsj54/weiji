@@ -86,7 +86,7 @@
 | POST | `/api/social/friends/requests` | `{ userId }` |
 | GET | `/api/social/friends/requests` | 待处理申请（含对方昵称、手机号） |
 | POST | `/api/social/friends/requests/{id}/handle` | `{ accept }` |
-| GET | `/api/social/friends` | 好友 |
+| GET | `/api/social/friends` | 好友（含对方昵称、手机号） |
 | GET | `/api/social/teams` | 我加入的队伍及成员进度 |
 | POST | `/api/social/teams` | `{ name, goalDesc, memberId }` |
 | POST/GET | `/api/social/teams/{id}/checkin` `/progress` | 组队打卡，全员完成后额外积分 |

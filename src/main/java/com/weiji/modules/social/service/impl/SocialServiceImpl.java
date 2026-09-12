@@ -97,6 +97,22 @@ public class SocialServiceImpl implements SocialService {
     }
 
     @Override
+    public List<Map<String, Object>> friendList(Long userId) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (FriendRelation rel : friends(userId)) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", rel.getId());
+            row.put("userId", rel.getUserId());
+            row.put("friendId", rel.getFriendId());
+            User peer = userMapper.selectById(rel.getFriendId());
+            row.put("nickname", peer == null ? rel.getFriendId() : peer.getNickname());
+            row.put("phone", peer == null ? null : peer.getPhone());
+            list.add(row);
+        }
+        return list;
+    }
+
+    @Override
     @Transactional
     public Team createTeam(Long ownerId, String name, String goalDesc, Long memberId) {
         Team team = new Team();
