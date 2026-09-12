@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `nickname`        VARCHAR(64)  DEFAULT NULL,
     `avatar`          VARCHAR(512) DEFAULT NULL,
     `status`          TINYINT      NOT NULL DEFAULT 1 COMMENT '1正常 0禁用',
+    `streak_days`     INT          NOT NULL DEFAULT 0,
+    `last_active_date` DATE        DEFAULT NULL,
     `deleted`         TINYINT      NOT NULL DEFAULT 0,
     `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -84,6 +86,9 @@ CREATE TABLE IF NOT EXISTS `task` (
     `buffered`           TINYINT      NOT NULL DEFAULT 0,
     `deferred_to`        DATE         DEFAULT NULL,
     `sort_order`         INT          NOT NULL DEFAULT 0,
+    `source_type`        VARCHAR(16)  NOT NULL DEFAULT 'MANUAL' COMMENT 'MANUAL/TEMPLATE/GOAL/REVIEW/IMPORT',
+    `review_note_id`     BIGINT       DEFAULT NULL,
+    `start_delay_seconds` INT         DEFAULT NULL,
     `created_at`         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -103,7 +108,10 @@ CREATE TABLE IF NOT EXISTS `focus_session` (
     `server_start_ts`      BIGINT       DEFAULT NULL,
     `server_end_ts`        BIGINT       DEFAULT NULL,
     `duration_seconds`     INT          NOT NULL DEFAULT 0,
-    `status`               TINYINT      NOT NULL DEFAULT 0 COMMENT '0计时中 1已结束 2已放弃',
+    `paused_seconds`       INT          NOT NULL DEFAULT 0,
+    `last_pause_ts`        BIGINT       DEFAULT NULL,
+    `source_type`          VARCHAR(16)  NOT NULL DEFAULT 'FOCUS' COMMENT 'FOCUS/MATCH',
+    `status`               TINYINT      NOT NULL DEFAULT 0 COMMENT '0计时中 1暂停 2已结束 3已放弃',
     `remark`               VARCHAR(512) DEFAULT NULL,
     `point_granted`        INT          NOT NULL DEFAULT 0,
     `created_at`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -138,6 +146,7 @@ CREATE TABLE IF NOT EXISTS `point_ledger` (
     `updated_at`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_ledger_no` (`ledger_no`),
+    UNIQUE KEY `uk_user_biz` (`user_id`, `biz_type`, `biz_id`),
     KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分流水';
 
@@ -149,6 +158,7 @@ CREATE TABLE IF NOT EXISTS `reward` (
     `point_cost`      INT          NOT NULL,
     `lock_mode`       TINYINT      NOT NULL DEFAULT 0,
     `cooldown_hours`  INT          DEFAULT NULL,
+    `item_code`       VARCHAR(32)  DEFAULT NULL COMMENT 'SKIP_CARD/DAY_EXEMPT/CHARITY/CUSTOM',
     `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -286,6 +296,52 @@ CREATE TABLE IF NOT EXISTS `team_member` (
     UNIQUE KEY `uk_team_user` (`team_id`, `user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='组队成员';
 
+CREATE TABLE IF NOT EXISTS `user_item` (
+    `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT      NOT NULL,
+    `item_code`   VARCHAR(32) NOT NULL,
+    `quantity`    INT         NOT NULL DEFAULT 0,
+    `created_at`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_item` (`user_id`, `item_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='道具库存';
+
+CREATE TABLE IF NOT EXISTS `desk_session` (
+    `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+    `owner_id`    BIGINT      NOT NULL,
+    `peer_id`     BIGINT      NOT NULL,
+    `status`      VARCHAR(16) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/RUNNING/FINISHED',
+    `started_at`  DATETIME    DEFAULT NULL,
+    `ended_at`    DATETIME    DEFAULT NULL,
+    `created_at`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_owner` (`owner_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='同桌同步';
+
+CREATE TABLE IF NOT EXISTS `desk_member` (
+    `id`           BIGINT      NOT NULL AUTO_INCREMENT,
+    `session_id`   BIGINT      NOT NULL,
+    `user_id`      BIGINT      NOT NULL,
+    `done`         TINYINT     NOT NULL DEFAULT 0,
+    `report`       VARCHAR(256) DEFAULT NULL,
+    `created_at`   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_session_user` (`session_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='同桌成员报备';
+
+CREATE TABLE IF NOT EXISTS `plaza_favorite` (
+    `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT   NOT NULL,
+    `post_id`     BIGINT   NOT NULL,
+    `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_post` (`user_id`, `post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='广场收藏';
+
 CREATE TABLE IF NOT EXISTS `plaza_post` (
     `id`          BIGINT        NOT NULL AUTO_INCREMENT,
     `user_id`     BIGINT        NOT NULL,
@@ -298,5 +354,25 @@ CREATE TABLE IF NOT EXISTS `plaza_post` (
     PRIMARY KEY (`id`),
     KEY `idx_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='匿名任务广场';
+
+INSERT INTO `task_template` (`user_id`, `name`, `content`, `category`, `duration_minutes`, `scene_code`, `timer_template`)
+SELECT * FROM (
+    SELECT NULL AS user_id, '背单词' AS name, '利用碎片时间过一组单词' AS content, '学习' AS category, 15 AS duration_minutes, 'COMMUTE' AS scene_code, 0 AS timer_template
+    UNION ALL SELECT NULL, '当日复盘', '用几分钟回顾今天做了什么', '自我提升', 10, 'HOME', 0
+    UNION ALL SELECT NULL, '整理通讯录', '清理或备注几位联系人', '生活', 10, 'HOME', 0
+    UNION ALL SELECT NULL, '读一篇干货', '读完一篇短文或技术文章', '学习', 20, 'LIBRARY', 0
+    UNION ALL SELECT NULL, '回复工作消息', '处理积压的工作沟通', '工作', 10, 'COMPANY', 0
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `task_template` WHERE `user_id` IS NULL AND `name` = seed.name);
+
+INSERT INTO `badge` (`code`, `name`, `description`)
+SELECT * FROM (
+    SELECT 'COMMUTE_MASTER' AS code, '通勤达人' AS name, '完成 20 个通勤场景任务' AS description
+    UNION ALL SELECT 'STREAK_7', '连续7天打卡', '连续 7 天有完成记录'
+    UNION ALL SELECT 'TASK_100', '百任务达成', '累计完成 100 个微任务'
+    UNION ALL SELECT 'DELAY_IMPROVER', '拖延改善之星', '启动延迟持续下降'
+    UNION ALL SELECT 'FOCUS_DAILY', '日专注达标', '达成每日专注时长目标'
+) AS b
+WHERE NOT EXISTS (SELECT 1 FROM `badge` WHERE `code` = b.code);
 
 SET FOREIGN_KEY_CHECKS = 1;

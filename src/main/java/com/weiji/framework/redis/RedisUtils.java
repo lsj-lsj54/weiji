@@ -50,6 +50,14 @@ public class RedisUtils {
         stringRedisTemplate.opsForZSet().add(key, member, score);
     }
 
+    public Double zScore(String key, String member) {
+        return stringRedisTemplate.opsForZSet().score(key, member);
+    }
+
+    public Double zIncr(String key, String member, double delta) {
+        return stringRedisTemplate.opsForZSet().incrementScore(key, member, delta);
+    }
+
     public Set<String> zRevRange(String key, long start, long end) {
         return stringRedisTemplate.opsForZSet().reverseRange(key, start, end);
     }

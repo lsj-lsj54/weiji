@@ -7,14 +7,10 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("reward")
-public class Reward extends BaseEntity {
+@TableName("user_item")
+public class UserItem extends BaseEntity {
 
     private Long userId;
-    private String name;
-    private String level;
-    private Integer pointCost;
-    private Integer lockMode;
-    private Integer cooldownHours;
     private String itemCode;
+    private Integer quantity;
 }

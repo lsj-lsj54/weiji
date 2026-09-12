@@ -20,7 +20,23 @@ public enum ErrorCode {
     USER_DISABLED(1004, "账号已被禁用"),
     TOKEN_INVALID(1005, "令牌无效"),
     TOKEN_BLACKLISTED(1006, "令牌已失效"),
-    REFRESH_TOKEN_INVALID(1007, "刷新令牌无效");
+    REFRESH_TOKEN_INVALID(1007, "刷新令牌无效"),
+
+    POINT_NOT_ENOUGH(2001, "积分不足"),
+    POINT_DUPLICATE(2002, "积分已结算"),
+    REWARD_LOCKED(2003, "奖励未满足兑换条件或仍在冷却"),
+    ITEM_NOT_ENOUGH(2004, "道具不足"),
+
+    TASK_NOT_FOUND(3001, "任务不存在"),
+    FOCUS_INVALID(3002, "计时状态不合法"),
+    FOCUS_CHEAT(3003, "计时数据校验失败"),
+    REST_DAY(3004, "今天是休息日，不推送任务"),
+    DND_PERIOD(3005, "当前处于免打扰时段"),
+
+    KNOWLEDGE_NOT_FOUND(4001, "知识点不存在"),
+
+    FRIEND_EXISTS(5001, "已经是好友"),
+    TEAM_NOT_FOUND(5002, "队伍不存在");
 
     private final int code;
     private final String message;

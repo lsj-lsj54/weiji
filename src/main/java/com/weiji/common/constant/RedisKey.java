@@ -19,4 +19,16 @@ public final class RedisKey {
     public static String refreshToken(Long userId) {
         return REFRESH_TOKEN + userId;
     }
+
+    public static String focusLive(Long userId) {
+        return "weiji:focus:live:" + userId;
+    }
+
+    public static String taskToday(Long userId) {
+        return TASK_TODAY + userId;
+    }
+
+    public static String weekRank(String weekKey) {
+        return RANK_WEEK + weekKey;
+    }
 }

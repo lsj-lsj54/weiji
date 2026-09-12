@@ -45,8 +45,8 @@ public class AuthServiceImpl implements AuthService {
         if (!PhoneUtils.isMobile(request.getPhone())) {
             throw new BizException(ErrorCode.BAD_REQUEST, "手机号格式不正确");
         }
-        Long exists = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getPhone, request.getPhone()));
-        if (exists != null && exists > 0) {
+        long exists = userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getPhone, request.getPhone()));
+        if (exists > 0) {
             throw new BizException(ErrorCode.USER_PHONE_EXISTS);
         }
         User user = new User();

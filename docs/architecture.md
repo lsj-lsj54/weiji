@@ -12,15 +12,17 @@ src/main/java/com/weiji
 ├── framework       # JWT、UserContext、RedisUtils、访问日志拦截器
 └── modules
     ├── user
-    ├── task        # matcher 规则匹配占位
+    ├── task        # 规则匹配 RuleTaskMatcher
     ├── point
-    ├── knowledge   # review 艾宾浩斯占位
+    ├── knowledge   # 艾宾浩斯 EbbinghausReviewScheduler
     └── social
 ```
 
 每个业务模块内部：`controller` → `service` → `mapper` → `entity` / `dto` / `vo`。
 
-当前仅 `user` 提供 Controller。其余模块 Service 方法会抛出 `UnsupportedOperationException`，避免半成品 API。
+Redis：`weiji:focus:live:{userId}` 当前计时；`weiji:rank:week:{周一日期}` 周榜 ZSet。
+
+本地配置：`application-dev.yml` 不要提交；Compose 密码放 `.env`。
 
 ## 认证流
 

@@ -20,6 +20,9 @@ public class FocusSession extends BaseEntity {
     private Long serverStartTs;
     private Long serverEndTs;
     private Integer durationSeconds;
+    private Integer pausedSeconds;
+    private Long lastPauseTs;
+    private String sourceType;
     private Integer status;
     private String remark;
     private Integer pointGranted;

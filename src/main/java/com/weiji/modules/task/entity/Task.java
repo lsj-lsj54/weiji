@@ -26,4 +26,7 @@ public class Task extends BaseEntity {
     private Integer buffered;
     private LocalDate deferredTo;
     private Integer sortOrder;
+    private String sourceType;
+    private Long reviewNoteId;
+    private Integer startDelaySeconds;
 }

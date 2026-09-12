@@ -1,13 +1,13 @@
 services:
   mysql:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: weiji-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 6
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-CHANGE_ME}
       MYSQL_DATABASE: weiji
       MYSQL_USER: weiji
-      MYSQL_PASSWORD: 6
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-CHANGE_ME}
     ports:
       - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: ["redis-server", "--requirepass", "CHANGE_ME"]
+    command: redis-server --requirepass ${REDIS_PASSWORD:-CHANGE_ME}
 
 volumes:
   weiji-mysql-data:

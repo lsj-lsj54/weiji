@@ -1,77 +1,95 @@
-# HTTP 接口（当前已实现）
+# HTTP 接口
 
-统一前缀 `/api`，响应：
+统一前缀 `/api`。响应 `{ "code": 0, "message": "ok", "data": {} }`。除注册/登录/刷新外均需 `Authorization: Bearer <accessToken>`。
 
-```json
-{ "code": 0, "message": "ok", "data": {} }
-```
+## 认证与用户
 
-`code != 0` 表示失败。业务错误一般 HTTP 200 + 业务码；未登录 HTTP 401。
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/auth/register` | 手机号+密码 |
+| POST | `/api/auth/login` | 登录 |
+| POST | `/api/auth/refresh` | 刷新令牌 |
+| POST | `/api/auth/logout` | 登出 |
+| GET | `/api/user/me` | 当前用户 |
+| PUT | `/api/user/profile` | 昵称/头像 |
+| GET/PUT | `/api/user/preference` | 精力状态、休息日 JSON 如 `[0]`、免打扰 `"22:00-07:00"`、日/周专注目标 |
+| POST/GET | `/api/user/goals` | 大目标 |
+| POST | `/api/user/goals/{id}/decompose` | `{ "chunkMinutes": 15 }` 拆成 5–30 分钟任务入池 |
 
-## 认证
+## 任务
 
-### POST `/api/auth/register`
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET/POST | `/api/task/templates` | 系统+自定义模板 |
+| POST | `/api/task/templates/{id}/apply` | 一键入池 |
+| POST/GET/PUT | `/api/task` | 任务 CRUD；GET 可 `status` `category` |
+| POST | `/api/task/{id}/buffer` | 当日缓冲不再匹配 |
+| POST | `/api/task/expire` | `{ "ids": [] }` 批量过期 |
+| POST | `/api/task/import` | 客户端解析后的待办数组 |
+| POST | `/api/task/match` | `{ idleMinutes, sceneCode, category, energyStatus }` 场景 HOME/COMMUTE/COMPANY/LIBRARY |
+| POST | `/api/task/preload` | 离线预加载 |
+| POST | `/api/task/{id}/complete` | `{ startDelaySeconds }` 完成并发积分 |
+| POST | `/api/task/{id}/skip` | 消耗 SKIP_CARD |
+| GET | `/api/task/delay-curve` | 拖延改善曲线 |
 
-无需登录。
+每日 00:10 未完成待办自动 `deferred_to=今天`。休息日或免打扰匹配返回业务码 `3004`/`3005`。
 
-```json
-{
-  "phone": "13800000000",
-  "password": "123456",
-  "nickname": "可选",
-  "smsCode": "预留，不校验"
-}
-```
+## 专注计时
 
-返回：
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/focus/start` | 标题、分类、goalId、taskId、clientStartTs、sourceType=FOCUS\|MATCH |
+| POST | `/api/focus/{id}/pause` `/resume` | 暂停/继续 |
+| POST | `/api/focus/{id}/finish` | `{ clientEndTs, remark }` 服务端校准后发积分 |
+| POST | `/api/focus/{id}/abandon` | 不计时长不计分 |
+| GET | `/api/focus/live` | 当前进行中会话（Redis） |
 
-```json
-{
-  "code": 0,
-  "message": "ok",
-  "data": {
-    "accessToken": "...",
-    "refreshToken": "...",
-    "expiresIn": 7200,
-    "tokenType": "Bearer"
-  }
-}
-```
+放弃不计分。客户端时长超过服务端+60s 则以服务端为准。
 
-手机号需为大陆 11 位。重复注册返回 `1001`。
+## 积分与成长
 
-### POST `/api/auth/login`
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/point/account` | 余额、累计、连续天数 |
+| GET | `/api/point/ledgers` | 流水 |
+| POST/GET | `/api/point/rewards` | 自建奖励，`level` NORMAL/MID/HIGH/MILESTONE，`lockMode` `cooldownHours` `itemCode` |
+| POST | `/api/point/rewards/{id}/redeem` | 锁定/冷却状态机 |
+| POST | `/api/point/donate` | `{ amount }` 公益 |
+| GET | `/api/point/items` | 道具 |
+| GET | `/api/point/badges` | 徽章 |
+| GET | `/api/point/time-bill` | `range=day\|week\|month` |
+| GET | `/api/point/focus-board` | 专注看板+目标进度 |
+| GET | `/api/point/evening-summary` | 当日文字小结 |
 
-字段同登录：`phone`、`password`、可选 `smsCode`。账号或密码错误 `1003`，禁用 `1004`。
+`itemCode`：`SKIP_CARD`、`DAY_EXEMPT`、`CHARITY`、`CUSTOM`。
 
-### POST `/api/auth/refresh`
+## 知识点
 
-```json
-{ "refreshToken": "..." }
-```
+创建体：`{ "note": { "title","content","taskId","mediaType","mediaUrl","mastery","starred" }, "tags": ["英语"] }`。`mediaType` TEXT/AUDIO/IMAGE，URL 由客户端传 OSS 地址。
 
-刷新后旧 refresh jti 被覆盖，需改用新的一对令牌。
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST/PUT/GET/DELETE | `/api/knowledge` `/api/knowledge/{id}` | CRUD，GET 列表支持 tag/mastery/taskId/starred |
+| POST | `/api/knowledge/merge` | `{ fromId, toId }` |
+| GET | `/api/knowledge/review/due` | 到期卡片 |
+| POST | `/api/knowledge/review/{id}/mark` | `{ remembered: true/false }` 间隔 1/2/4/7/15 天 |
+| GET | `/api/knowledge/weekly-summary` | 本周按标签汇总 |
+| GET | `/api/knowledge/export` | 文本导出 |
 
-### POST `/api/auth/logout`
+新建知识点会插入复习计划，并在任务池生成「复习：xxx」优先匹配。
 
-需要登录。Header：`Authorization: Bearer <accessToken>`。accessToken 进入 Redis 黑名单，refresh 失效。
+## 社交
 
-## 用户
-
-Header 均需 Bearer Token。
-
-### GET `/api/user/me`
-
-返回 `id`、`phone`、`nickname`、`avatar`、`status`。
-
-### PUT `/api/user/profile`
-
-```json
-{ "nickname": "新昵称", "avatar": "https://oss.example/avatar.png" }
-```
-
-头像目前只存 URL，OSS 上传由客户端后续对接。
-
-## 未开放
-
-任务匹配、计时、积分兑换、知识点、社交接口尚未提供 Controller，请勿调用。
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/social/friends/requests` | `{ userId }` |
+| POST | `/api/social/friends/requests/{id}/handle` | `{ accept }` |
+| GET | `/api/social/friends` | 好友 |
+| POST | `/api/social/teams` | `{ name, goalDesc, memberId }` |
+| POST/GET | `/api/social/teams/{id}/checkin` `/progress` | 组队打卡，全员完成后额外积分 |
+| POST/GET | `/api/social/plaza` | 匿名广场 |
+| POST | `/api/social/plaza/{id}/favorite` | 收藏并复制模板 |
+| POST | `/api/social/desk` | `{ userId }` 同桌 |
+| POST | `/api/social/desk/{id}/start` `/report` | 轮询进度，`{ done, report }` |
+| GET | `/api/social/desk/{id}` | 同桌详情 |
+| GET | `/api/social/rank/week` | 与好友的周时长榜 |

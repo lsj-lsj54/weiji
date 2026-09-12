@@ -16,6 +16,8 @@ public class User extends BaseEntity {
     private String nickname;
     private String avatar;
     private Integer status;
+    private Integer streakDays;
+    private java.time.LocalDate lastActiveDate;
 
     @TableLogic
     private Integer deleted;

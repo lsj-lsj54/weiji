@@ -35,4 +35,5 @@ build/
 ### Local secrets ###
 application-local.yml
 **/application-local.yml
+.env
 *.log
