@@ -1,9 +1,11 @@
 package com.weiji.modules.point.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.weiji.common.constant.CacheNames;
 import com.weiji.common.enums.ErrorCode;
 import com.weiji.common.exception.BizException;
 import com.weiji.common.utils.IdUtils;
+import com.weiji.framework.cache.MultiLevelCache;
 import com.weiji.modules.point.entity.Badge;
 import com.weiji.modules.point.entity.PointAccount;
 import com.weiji.modules.point.entity.PointLedger;
@@ -56,6 +58,7 @@ public class PointServiceImpl implements PointService {
     private final UserPreferenceMapper userPreferenceMapper;
     private final FocusSessionMapper focusSessionMapper;
     private final TaskMapper taskMapper;
+    private final MultiLevelCache cache;
 
     @Override
     @Transactional
@@ -194,7 +197,7 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void grantBadge(Long userId, String code) {
-        Badge badge = badgeMapper.selectOne(new LambdaQueryWrapper<Badge>().eq(Badge::getCode, code));
+        Badge badge = badgeByCode(code);
         if (badge == null) {
             return;
         }
@@ -216,7 +219,7 @@ public class PointServiceImpl implements PointService {
                 .eq(UserBadge::getUserId, userId));
         List<Map<String, Object>> list = new ArrayList<>();
         for (UserBadge ub : owned) {
-            Badge badge = badgeMapper.selectById(ub.getBadgeId());
+            Badge badge = badgeById(ub.getBadgeId());
             Map<String, Object> row = new HashMap<>();
             row.put("id", ub.getId());
             row.put("badgeId", ub.getBadgeId());
@@ -239,8 +242,7 @@ public class PointServiceImpl implements PointService {
         if (today.equals(user.getLastActiveDate())) {
             return;
         }
-        UserPreference pref = userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId));
+        UserPreference pref = cachedPreference(userId);
         boolean rest = isRestDay(pref, today);
         if (user.getLastActiveDate() == null) {
             user.setStreakDays(1);
@@ -293,8 +295,7 @@ public class PointServiceImpl implements PointService {
     @Override
     public Map<String, Object> focusBoard(Long userId, String range, LocalDate day) {
         Map<String, Object> bill = timeBill(userId, range, day);
-        UserPreference pref = userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId));
+        UserPreference pref = cachedPreference(userId);
         int target = 0;
         if (pref != null) {
             target = "week".equals(range)
@@ -353,6 +354,31 @@ public class PointServiceImpl implements PointService {
             pointAccountMapper.insert(account);
         }
         return account;
+    }
+
+    private List<Badge> allBadges() {
+        return cache.getList(CacheNames.BADGE, CacheNames.ALL, Badge.class,
+                () -> badgeMapper.selectList(null));
+    }
+
+    private Badge badgeById(Long badgeId) {
+        if (badgeId == null) {
+            return null;
+        }
+        return allBadges().stream().filter(b -> badgeId.equals(b.getId())).findFirst().orElse(null);
+    }
+
+    private Badge badgeByCode(String code) {
+        if (StringUtils.isBlank(code)) {
+            return null;
+        }
+        return allBadges().stream().filter(b -> code.equals(b.getCode())).findFirst().orElse(null);
+    }
+
+    private UserPreference cachedPreference(Long userId) {
+        return cache.get(CacheNames.PREFERENCE, String.valueOf(userId), UserPreference.class,
+                () -> userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
+                        .eq(UserPreference::getUserId, userId)));
     }
 
     private boolean isRestDay(UserPreference pref, LocalDate day) {

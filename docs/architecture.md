@@ -8,8 +8,8 @@ MVP 采用单工程 + 领域分层，包名 `com.weiji`，后续可按模块拆�
 src/main/java/com/weiji
 ├── WeijiApplication.java
 ├── common          # Result、异常、枚举、工具、常量
-├── config          # Security / Redis / MyBatis-Plus / Web
-├── framework       # JWT、UserContext、RedisUtils、访问日志拦截器
+├── config          # Security / Redis / Cache / MyBatis-Plus / Web
+├── framework       # JWT、UserContext、RedisUtils、MultiLevelCache、访问日志拦截器
 └── modules
     ├── user
     ├── task        # 规则匹配 RuleTaskMatcher
@@ -22,6 +22,8 @@ src/main/java/com/weiji
 
 Redis：`weiji:focus:live:{userId}` 当前计时；`weiji:rank:week:{周一日期}` 周榜 ZSet。
 
+实体读缓存（Caffeine L1 + Redis L2）见 [cache.md](cache.md)。key 形如 `weiji:c:{name}:{key}`，失效频道 `weiji:cache:invalidate`。
+
 本地配置：`application-dev.yml` 不要提交；Compose 密码放 `.env`。
 
 ## 认证流
@@ -33,7 +35,7 @@ Redis：`weiji:focus:live:{userId}` 当前计时；`weiji:rank:week:{周一日�
 
 ## 配置
 
-- `application.yml`：公共项与 JWT 占位密钥
+- `application.yml`：公共项、JWT 占位密钥、`weiji.cache` 多级缓存 TTL
 - `application-dev.yml` / `application-prod.yml`：数据源与 Redis，密码均为 `CHANGE_ME`
 - 本地可用 `application-local.yml` 覆盖（不提交 Git）
 

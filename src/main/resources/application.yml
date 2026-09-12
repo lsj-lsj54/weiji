@@ -25,6 +25,13 @@ weiji:
     secret: CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS
     access-expire-seconds: 7200
     refresh-expire-seconds: 604800
+  cache:
+    instance-id: ${random.uuid}
+    defaults:
+      l1-max-size: 10000
+      l1-ttl: 2m
+      l2-ttl: 15m
+      null-ttl: 30s
 
 server:
   port: 8080

@@ -6,6 +6,7 @@
 
 - Java 17 + Spring Boot 3.2.5
 - Spring Security + JWT + Redis（令牌黑名单、计时会话、周榜 ZSet）
+- Caffeine + Redis 多级缓存（用户资料、偏好、徽章目录、系统模板）
 - MyBatis-Plus 3.5.5
 - MySQL 8.0
 
@@ -18,7 +19,7 @@
 5. 可选：`docker compose up -d`
 6. `mvnw.cmd spring-boot:run`
 
-请求体、错误码等细节见 [docs/api.md](docs/api.md)。
+请求体、错误码等细节见 [docs/api.md](docs/api.md)。多级缓存见 [docs/cache.md](docs/cache.md)。
 
 ## 接口约定
 
@@ -134,6 +135,6 @@
 
 ## 服务端已实现
 
-模板与任务匹配、专注校准、积分流水、艾宾浩斯复习、好友组队广场同桌、周榜 Redis ZSet。
+模板与任务匹配、专注校准、积分流水、艾宾浩斯复习、好友组队广场同桌、周榜 Redis ZSet、Caffeine + Redis 多级缓存。
 
 客户端专属（小组件、语音、系统免打扰、定位 SDK、短信/OSS/推送）不在本仓。

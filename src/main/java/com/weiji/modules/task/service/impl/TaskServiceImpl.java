@@ -2,9 +2,11 @@ package com.weiji.modules.task.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.weiji.common.constant.CacheNames;
 import com.weiji.common.constant.RedisKey;
 import com.weiji.common.enums.ErrorCode;
 import com.weiji.common.exception.BizException;
+import com.weiji.framework.cache.MultiLevelCache;
 import com.weiji.framework.redis.RedisUtils;
 import com.weiji.modules.point.service.PointService;
 import com.weiji.modules.task.entity.FocusSession;
@@ -50,12 +52,21 @@ public class TaskServiceImpl implements TaskService {
     private final RuleTaskMatcher matcher;
     private final PointService pointService;
     private final RedisUtils redisUtils;
+    private final MultiLevelCache cache;
 
     @Override
     public List<TaskTemplate> templates(Long userId) {
-        return taskTemplateMapper.selectList(new LambdaQueryWrapper<TaskTemplate>()
-                .and(w -> w.isNull(TaskTemplate::getUserId).or().eq(TaskTemplate::getUserId, userId))
+        List<TaskTemplate> system = cache.getList(CacheNames.SYS_TEMPLATE, CacheNames.ALL, TaskTemplate.class,
+                () -> taskTemplateMapper.selectList(new LambdaQueryWrapper<TaskTemplate>()
+                        .isNull(TaskTemplate::getUserId)
+                        .orderByAsc(TaskTemplate::getId)));
+        List<TaskTemplate> mine = taskTemplateMapper.selectList(new LambdaQueryWrapper<TaskTemplate>()
+                .eq(TaskTemplate::getUserId, userId)
                 .orderByAsc(TaskTemplate::getId));
+        List<TaskTemplate> result = new ArrayList<>(system.size() + mine.size());
+        result.addAll(system);
+        result.addAll(mine);
+        return result;
     }
 
     @Override
@@ -431,8 +442,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     private UserPreference preference(Long userId) {
-        return userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId));
+        return cache.get(CacheNames.PREFERENCE, String.valueOf(userId), UserPreference.class,
+                () -> userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
+                        .eq(UserPreference::getUserId, userId)));
     }
 
     private void addGoalMinutes(Long goalId, int minutes) {

@@ -11,6 +11,8 @@ public interface UserService {
 
     UserVO currentUser();
 
+    UserVO getUser(Long userId);
+
     UserVO updateProfile(UpdateProfileRequest request);
 
     UserPreference preference();

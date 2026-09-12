@@ -1,8 +1,10 @@
 package com.weiji.modules.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.weiji.common.constant.CacheNames;
 import com.weiji.common.enums.ErrorCode;
 import com.weiji.common.exception.BizException;
+import com.weiji.framework.cache.MultiLevelCache;
 import com.weiji.framework.security.Currents;
 import com.weiji.modules.task.entity.Task;
 import com.weiji.modules.task.service.TaskService;
@@ -31,10 +33,26 @@ public class UserServiceImpl implements UserService {
     private final UserPreferenceMapper userPreferenceMapper;
     private final UserGoalMapper userGoalMapper;
     private final TaskService taskService;
+    private final MultiLevelCache cache;
 
     @Override
     public UserVO currentUser() {
-        return toVo(loadCurrent());
+        UserVO vo = getUser(Currents.userId());
+        if (vo == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND);
+        }
+        return vo;
+    }
+
+    @Override
+    public UserVO getUser(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return cache.get(CacheNames.USER, String.valueOf(userId), UserVO.class, () -> {
+            User user = userMapper.selectById(userId);
+            return user == null ? null : toVo(user);
+        });
     }
 
     @Override
@@ -47,19 +65,24 @@ public class UserServiceImpl implements UserService {
             user.setAvatar(request.getAvatar());
         }
         userMapper.updateById(user);
-        return toVo(userMapper.selectById(user.getId()));
+        cache.evict(CacheNames.USER, String.valueOf(user.getId()));
+        UserVO vo = getUser(user.getId());
+        if (vo == null) {
+            throw new BizException(ErrorCode.USER_NOT_FOUND);
+        }
+        return vo;
     }
 
     @Override
     public UserPreference preference() {
         Long userId = Currents.userId();
-        UserPreference pref = userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
-                .eq(UserPreference::getUserId, userId));
+        UserPreference pref = loadPreference(userId);
         if (pref == null) {
             pref = new UserPreference();
             pref.setUserId(userId);
             pref.setEnergyStatus("ENERGETIC");
             userPreferenceMapper.insert(pref);
+            cache.evict(CacheNames.PREFERENCE, String.valueOf(userId));
         }
         return pref;
     }
@@ -70,7 +93,8 @@ public class UserServiceImpl implements UserService {
         preference.setId(old.getId());
         preference.setUserId(old.getUserId());
         userPreferenceMapper.updateById(preference);
-        return userPreferenceMapper.selectById(old.getId());
+        cache.evict(CacheNames.PREFERENCE, String.valueOf(old.getUserId()));
+        return loadPreference(old.getUserId());
     }
 
     @Override
@@ -135,6 +159,12 @@ public class UserServiceImpl implements UserService {
             throw new BizException(ErrorCode.USER_NOT_FOUND);
         }
         return toVo(user);
+    }
+
+    private UserPreference loadPreference(Long userId) {
+        return cache.get(CacheNames.PREFERENCE, String.valueOf(userId), UserPreference.class,
+                () -> userPreferenceMapper.selectOne(new LambdaQueryWrapper<UserPreference>()
+                        .eq(UserPreference::getUserId, userId)));
     }
 
     private User loadCurrent() {

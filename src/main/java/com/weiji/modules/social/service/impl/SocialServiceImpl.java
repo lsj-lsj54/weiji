@@ -27,6 +27,8 @@ import com.weiji.modules.task.entity.TaskTemplate;
 import com.weiji.modules.task.mapper.TaskTemplateMapper;
 import com.weiji.modules.user.entity.User;
 import com.weiji.modules.user.mapper.UserMapper;
+import com.weiji.modules.user.service.UserService;
+import com.weiji.modules.user.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,7 @@ public class SocialServiceImpl implements SocialService {
     private final DeskMemberMapper deskMemberMapper;
     private final TaskTemplateMapper taskTemplateMapper;
     private final UserMapper userMapper;
+    private final UserService userService;
     private final PointService pointService;
     private final RedisUtils redisUtils;
 
@@ -266,7 +269,7 @@ public class SocialServiceImpl implements SocialService {
                 Map<String, Object> row = new HashMap<>();
                 row.put("rank", i++);
                 row.put("userId", uid);
-                User user = userMapper.selectById(uid);
+                UserVO user = userService.getUser(uid);
                 row.put("nickname", user == null ? uid : user.getNickname());
                 Double score = redisUtils.zScore(key, member);
                 row.put("minutes", score == null ? 0 : score.intValue());
