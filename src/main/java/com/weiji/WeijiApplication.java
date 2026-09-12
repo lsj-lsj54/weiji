@@ -1,13 +1,14 @@
-package com.lsj.weiji;
+package com.weiji;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class WeijiBackendApplication {
+@MapperScan("com.weiji.modules")
+public class WeijiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WeijiBackendApplication.class, args);
+        SpringApplication.run(WeijiApplication.class, args);
     }
-
 }
