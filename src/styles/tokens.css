@@ -62,7 +62,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--void-ink);
+  background-color: var(--void-ink);
   color: var(--porcelain);
   font-family: var(--font-sans);
   font-size: 16px;
@@ -106,7 +106,7 @@ button {
 .phone {
   width: min(100%, var(--phone-width));
   min-height: 100dvh;
-  background: var(--void-ink);
+  background-color: var(--void-ink);
   position: relative;
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
@@ -316,7 +316,7 @@ textarea.field {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--line);
-  background: var(--dock-bg);
+  background-color: var(--dock-bg);
   backdrop-filter: blur(10px);
 }
 
@@ -360,6 +360,13 @@ textarea.field {
 .theme-toggle .chip {
   padding: 6px 10px;
   font-size: 13px;
+}
+
+html.is-theme-switching,
+html.is-theme-switching body,
+html.is-theme-switching .phone,
+html.is-theme-switching .dock {
+  transition: background-color 200ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -24,9 +24,28 @@ function currentTheme(): Theme {
   return readStored() || systemTheme()
 }
 
+const SWITCH_MS = 200
+
+let switchTimer: number | undefined
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 function apply(next: Theme) {
   document.documentElement.dataset.theme = next
   document.documentElement.style.colorScheme = next
+}
+
+function markSwitching() {
+  if (prefersReducedMotion()) return
+  const root = document.documentElement
+  root.classList.add('is-theme-switching')
+  if (switchTimer !== undefined) window.clearTimeout(switchTimer)
+  switchTimer = window.setTimeout(() => {
+    root.classList.remove('is-theme-switching')
+    switchTimer = undefined
+  }, SWITCH_MS)
 }
 
 const theme = ref<Theme>(typeof document === 'undefined' ? 'dark' : currentTheme())
@@ -37,6 +56,8 @@ if (typeof document !== 'undefined') {
 
 export function useTheme() {
   function setTheme(next: Theme) {
+    if (next === theme.value) return
+    markSwitching()
     theme.value = next
     apply(next)
     try {
