@@ -1,9 +1,9 @@
-package com.weiji.modules.social.mapper;
+package com.weiji.modules.social.mapper; // MyBatis Mapper 包
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.weiji.modules.social.entity.TeamMember;
-import org.apache.ibatis.annotations.Mapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper; // MyBatis-Plus
+import com.weiji.modules.social.entity.TeamMember; // 本仓类 TeamMember
+import org.apache.ibatis.annotations.Mapper; // MyBatis Mapper 标记
 
-@Mapper
-public interface TeamMemberMapper extends BaseMapper<TeamMember> {
+@Mapper // MyBatis 接口，由 MapperScan 加载
+public interface TeamMemberMapper extends BaseMapper<TeamMember> { // 继承 MP CRUD
 }

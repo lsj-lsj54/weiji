@@ -1,15 +1,15 @@
-package com.weiji.modules.social.entity;
+package com.weiji.modules.social.entity; // 数据库实体包
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.weiji.common.entity.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.baomidou.mybatisplus.annotation.TableName; // MyBatis-Plus
+import com.weiji.common.entity.BaseEntity; // 本仓类 BaseEntity
+import lombok.Data; // Lombok 样板代码生成
+import lombok.EqualsAndHashCode; // Lombok 样板代码生成
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("plaza_favorite")
-public class PlazaFavorite extends BaseEntity {
+@Data // Lombok：getter/setter/equals/hashCode
+@EqualsAndHashCode(callSuper = true) // Lombok 相等性，含父类字段
+@TableName("plaza_favorite") // 映射数据库表名
+public class PlazaFavorite extends BaseEntity { // 定义类 PlazaFavorite，有继承
 
-    private Long userId;
-    private Long postId;
+    private Long userId; // 字段 用户 ID
+    private Long postId; // 字段 postId
 }
