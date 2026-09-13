@@ -1,0 +1,93 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "微积",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/register/register",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/now/now",
+      "style": {
+        "navigationBarTitleText": "此刻"
+      }
+    },
+    {
+      "path": "pages/tasks/tasks",
+      "style": {
+        "navigationBarTitleText": "待办"
+      }
+    },
+    {
+      "path": "pages/points/points",
+      "style": {
+        "navigationBarTitleText": "积点"
+      }
+    },
+    {
+      "path": "pages/me/me",
+      "style": {
+        "navigationBarTitleText": "我"
+      }
+    },
+    {
+      "path": "pages/knowledge/knowledge",
+      "style": {
+        "navigationBarTitleText": "知识点"
+      }
+    },
+    {
+      "path": "pages/social/social",
+      "style": {
+        "navigationBarTitleText": "一块过"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "微积",
+    "navigationBarBackgroundColor": "#12181c",
+    "backgroundColor": "#12181c",
+    "backgroundColorContent": "#12181c"
+  },
+  "tabBar": {
+    "color": "#8b97a4",
+    "selectedColor": "#c4a056",
+    "backgroundColor": "#12181c",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/now/now",
+        "text": "此刻",
+        "iconPath": "static/tab/now.png",
+        "selectedIconPath": "static/tab/now-on.png"
+      },
+      {
+        "pagePath": "pages/tasks/tasks",
+        "text": "待办",
+        "iconPath": "static/tab/tasks.png",
+        "selectedIconPath": "static/tab/tasks-on.png"
+      },
+      {
+        "pagePath": "pages/points/points",
+        "text": "积点",
+        "iconPath": "static/tab/points.png",
+        "selectedIconPath": "static/tab/points-on.png"
+      },
+      {
+        "pagePath": "pages/me/me",
+        "text": "我",
+        "iconPath": "static/tab/me.png",
+        "selectedIconPath": "static/tab/me-on.png"
+      }
+    ]
+  }
+}
