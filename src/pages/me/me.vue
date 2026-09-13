@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageShell from '@/components/PageShell.vue'
-import { ApiError } from '@/api/http'
+import { ApiError, getApiBase, setApiBase } from '@/api/http'
 import { updatePreference, updateProfile } from '@/api/user'
 import { ENERGIES, WEEKDAYS } from '@/api/types'
 import { useAuthGuard } from '@/composables/useAuthGuard'
@@ -17,6 +17,7 @@ const restSet = ref<number[]>([])
 const dnd = ref('')
 const daily = ref(30)
 const weekly = ref(180)
+const server = ref('')
 const error = ref('')
 const saved = ref('')
 
@@ -46,6 +47,7 @@ function fillForm() {
   dnd.value = auth.preference?.dndPeriods || ''
   daily.value = auth.preference?.dailyFocusMinutes || 30
   weekly.value = auth.preference?.weeklyFocusMinutes || 180
+  server.value = getApiBase()
 }
 
 onShow(async () => {
@@ -73,6 +75,7 @@ async function save() {
     })
     auth.setPreference(pref)
     if (auth.user) auth.user.nickname = nickname.value.trim()
+    setApiBase(server.value)
     saved.value = '已记下'
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : '保存失败'
@@ -123,6 +126,7 @@ async function out() {
       <input v-model="dnd" class="field" placeholder="免打扰，空着则不限制。例 22:00-07:00" />
       <input v-model="daily" class="field" type="number" placeholder="每日分钟" />
       <input v-model="weekly" class="field" type="number" placeholder="每周分钟" />
+      <input v-model="server" class="field" placeholder="服务器地址。例 http://192.168.1.8:8080" />
       <view class="btn btn--primary" @click="save">保存</view>
     </view>
     <view v-if="saved" class="banner" style="margin-top: 12px">{{ saved }}</view>

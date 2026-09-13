@@ -2,6 +2,23 @@ import type { ApiResult, TokenPayload } from './types'
 
 const TOKEN_KEY = 'weiji.access'
 const REFRESH_KEY = 'weiji.refresh'
+const API_BASE_KEY = 'weiji.apiBase'
+
+function stripSlash(url: string) {
+  return url.replace(/\/+$/, '')
+}
+
+export function getApiBase() {
+  const stored = uni.getStorageSync(API_BASE_KEY)
+  if (stored) return stripSlash(String(stored))
+  return stripSlash(import.meta.env.VITE_API_BASE || '')
+}
+
+export function setApiBase(url: string) {
+  const next = stripSlash(url.trim())
+  if (next) uni.setStorageSync(API_BASE_KEY, next)
+  else uni.removeStorageSync(API_BASE_KEY)
+}
 
 export function getAccessToken() {
   return uni.getStorageSync(TOKEN_KEY) || ''
@@ -38,7 +55,7 @@ export interface RequestOptions {
 }
 
 function apiBase() {
-  return import.meta.env.VITE_API_BASE || ''
+  return getApiBase()
 }
 
 function withQuery(url: string, params?: RequestOptions['params']) {

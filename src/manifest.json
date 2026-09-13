@@ -1,6 +1,6 @@
 {
   "name": "微积",
-  "appid": "",
+  "appid": "__UNI__WEIJI01",
   "description": "碎片时间管理",
   "versionName": "0.1.0",
   "versionCode": "100",
@@ -18,10 +18,33 @@
     "modules": {},
     "distribute": {
       "android": {
+        "packagename": "com.weiji.app",
+        "minSdkVersion": 21,
+        "targetSdkVersion": 33,
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"],
         "permissions": [
           "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
-          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
-        ]
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+        ],
+        "schemes": "",
+        "usesCleartextTraffic": true
+      },
+      "icons": {
+        "android": {
+          "hdpi": "static/app/icon.png",
+          "xhdpi": "static/app/icon.png",
+          "xxhdpi": "static/app/icon.png",
+          "xxxhdpi": "static/app/icon.png"
+        }
+      },
+      "splashscreen": {
+        "androidStyle": "common",
+        "android": {
+          "hdpi": "static/app/splash.png",
+          "xhdpi": "static/app/splash.png",
+          "xxhdpi": "static/app/splash.png"
+        }
       },
       "ios": {},
       "sdkConfigs": {}

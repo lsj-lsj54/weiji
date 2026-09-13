@@ -13,6 +13,18 @@ dist
 unpackage
 *.local
 
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/*.iml
+android/.idea
+android/app/libs/*.jar
+android/app/libs/*.aar
+android/app/libs/*.so
+android/app/src/main/assets/apps/__UNI__WEIJI01/www/*
+!android/app/src/main/assets/apps/__UNI__WEIJI01/www/.gitkeep
+
 # Editor directories and files
 .idea
 *.suo

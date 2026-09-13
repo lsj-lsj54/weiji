@@ -2,18 +2,20 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import { ApiError, getAccessToken } from '@/api/http'
+import { ApiError, getAccessToken, getApiBase, setApiBase } from '@/api/http'
 import { theme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const phone = ref('')
 const password = ref('')
+const server = ref('')
 const error = ref('')
 const loading = ref(false)
 const pageClass = computed(() => `page page--auth theme-${theme.value}`)
 
 onShow(() => {
+  server.value = getApiBase()
   if (getAccessToken()) {
     uni.switchTab({ url: '/pages/now/now' })
   }
@@ -24,6 +26,7 @@ async function submit() {
   error.value = ''
   loading.value = true
   try {
+    setApiBase(server.value)
     await auth.login(phone.value.trim(), password.value)
     uni.switchTab({ url: '/pages/now/now' })
   } catch (e) {
@@ -45,6 +48,7 @@ async function submit() {
     <view class="stack">
       <input v-model="phone" class="field" type="number" placeholder="手机号" />
       <input v-model="password" class="field" password placeholder="密码" />
+      <input v-model="server" class="field" placeholder="服务器，App 必填。例 http://192.168.1.8:8080" />
       <view v-if="error" class="toast">{{ error }}</view>
       <view class="btn btn--primary" :class="{ 'is-disabled': loading }" @click="submit">进入</view>
     </view>
